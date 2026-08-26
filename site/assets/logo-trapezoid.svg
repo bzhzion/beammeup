@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <rect x="0" y="0" width="1024" height="1024" fill="#000000" />
+
+  <!-- Trapeze arc-en-ciel : 25% de large en haut (centre), 90% en bas, 7 bandes verticales -->
+  <!-- top: 384 -> 640 (largeur 256) ; bottom: 51.2 -> 972.8 (largeur 921.6) ; y: 0 -> 1024 (traverse tout le carre) -->
+
+  <polygon points="384.00,0 420.57,0 182.86,1024 51.20,1024" fill="#FF0033" />
+  <polygon points="420.57,0 457.14,0 314.51,1024 182.86,1024" fill="#FF7A00" />
+  <polygon points="457.14,0 493.71,0 446.17,1024 314.51,1024" fill="#FFD500" />
+  <polygon points="493.71,0 530.29,0 577.83,1024 446.17,1024" fill="#2ECC40" />
+  <polygon points="530.29,0 566.86,0 709.49,1024 577.83,1024" fill="#0074D9" />
+  <polygon points="566.86,0 603.43,0 841.14,1024 709.49,1024" fill="#5A2EBF" />
+  <polygon points="603.43,0 640.00,0 972.80,1024 841.14,1024" fill="#B10DC9" />
+</svg>

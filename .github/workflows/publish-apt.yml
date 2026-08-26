@@ -1,0 +1,67 @@
+name: Publier sur le depot APT
+
+# Volontairement decouple du build (release-linux.yml) : declenchement manuel uniquement, jamais
+# automatique. Meme raison que publish-winget.yml, avec un argument de securite en plus, ce
+# workflow etant le seul a toucher une machine de production (axolotl) depuis un depot public :
+# moins il se declenche tout seul, mieux c'est.
+#
+# Pas de variable d'opt-in enchainee : ce mecanisme (vars.AUTO_PUBLISH_* + reinitialisation a
+# false en fin de job) a ete abandonne dans l'ecosysteme parce que la reinitialisation reposait sur
+# un token qui repondait 401 sans faire echouer l'etape, laissant la variable bloquee a `true`.
+# Voir appermittent/publish-ios.yml.
+#
+# La cle SSH utilisee (`AXOLOTL_APT_KEY`) est **dediee et restreinte cote serveur** : une commande
+# forcee dans `authorized_keys` la limite a publier un paquet nomme `beammeup`, sans shell ni
+# lecture de fichiers. C'est ce qui rend acceptable la presence d'une cle vers une machine de
+# production dans les secrets d'un depot public. Ne jamais la remplacer par une cle d'acces
+# general.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version a publier (ex: 0.2.0), doit deja avoir une Release GitHub'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  apt:
+    name: Publier le .deb sur apt.breizhzion.com
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Recuperer le .deb de la release
+        id: deb
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          TAG="v$VERSION"
+          echo "Tag: $TAG"
+          gh release download "$TAG" --repo "${{ github.repository }}" --pattern '*.deb' --dir .
+          DEB=$(ls *.deb | head -1)
+          echo "Paquet: $DEB"
+          echo "deb=$DEB" >> "$GITHUB_OUTPUT"
+
+      # Une seule connexion, sans scp ni commande distante : la cle est associee a une commande
+      # forcee qui lit le paquet sur l'entree standard, verifie que c'est bien un .deb nomme
+      # `beammeup`, puis le passe a reprepro. Rien d'autre n'est executable avec cette cle.
+      - name: Publier via la cle restreinte
+        env:
+          SSH_KEY: ${{ secrets.AXOLOTL_APT_KEY }}
+          HOST: ${{ secrets.AXOLOTL_HOST }}
+          USER_NAME: ${{ secrets.AXOLOTL_USER }}
+          DEB: ${{ steps.deb.outputs.deb }}
+        run: |
+          echo "$SSH_KEY" > /tmp/apt_key
+          chmod 600 /tmp/apt_key
+          ssh -i /tmp/apt_key \
+            -o StrictHostKeyChecking=accept-new \
+            -o BatchMode=yes \
+            "$USER_NAME@$HOST" < "$DEB"
+          rm -f /tmp/apt_key
+          echo "Publie sur https://apt.breizhzion.com (apt install beammeup)"

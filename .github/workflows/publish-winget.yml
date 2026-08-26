@@ -1,0 +1,83 @@
+name: Publier sur winget
+
+# Volontairement decouple du build (release-windows.yml) : declenchement manuel uniquement, jamais
+# automatique. Publier sur winget ouvre une pull request sur `microsoft/winget-pkgs`, depot tiers
+# tres frequente revu par des mainteneurs externes : ce n'est pas quelque chose qui doit partir a
+# chaque tag, en particulier pendant une serie de builds de test.
+#
+# Pas de variable d'opt-in enchainee ici, contrairement a ce qu'on faisait avant sur les apps
+# mobiles de l'ecosysteme : ce mecanisme (vars.AUTO_PUBLISH_STORES + reinitialisation a false en
+# fin de job) reposait sur un token qui repondait systematiquement 401 sans faire echouer l'etape.
+# La variable restait donc bloquee a `true` et tout se publiait automatiquement, exactement ce
+# qu'elle etait censee empecher. Un workflow qui ne tourne que quand on le lance n'a pas ce
+# probleme. Voir appermittent/publish-ios.yml et publish-android.yml.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version a publier (ex: 0.2.0), doit deja avoir une Release GitHub'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  winget:
+    name: Mettre a jour le manifest Breizhzion.BeamMeUp
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Retrouver l'installeur de la release
+        id: release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          $tag = "v$($env:VERSION)"
+          # L'asset NSIS est celui que winget installe : le MSI est publie aussi, mais le manifest
+          # ne reference qu'un installeur par architecture.
+          $asset = (gh release view $tag --repo ${{ github.repository }} --json assets -q '.assets[].name' `
+                    | Where-Object { $_ -like '*-setup.exe' } | Select-Object -First 1)
+          if (-not $asset) { throw "Aucun installeur NSIS trouve dans la release $tag" }
+          Write-Host "Tag: $tag / asset: $asset"
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "asset=$asset" >> $env:GITHUB_OUTPUT
+
+      # Ce depot etant PUBLIC, l'asset de la Release GitHub est deja une URL stable et publiquement
+      # accessible (jamais ecrasee) : pas besoin d'un bucket/CDN intermediaire, alors que winget
+      # exige une URL d'installeur stable par version.
+      #
+      # PREREQUIS : le paquet doit avoir ete soumis une premiere fois a la main (`wingetcreate new`,
+      # PR ouverte et mergee sur microsoft/winget-pkgs). Tant que ce n'est pas fait, `update`
+      # echoue puisqu'il n'y a rien a mettre a jour.
+      - name: wingetcreate update
+        env:
+          WINGET_PAT: ${{ secrets.WINGET_PAT }}
+          VERSION: ${{ inputs.version }}
+          INSTALLER_URL: https://github.com/${{ github.repository }}/releases/download/${{ steps.release.outputs.tag }}/${{ steps.release.outputs.asset }}
+        shell: pwsh
+        run: |
+          # Le fork personnel prend du retard sur microsoft/winget-pkgs (depot a tres fort trafic),
+          # et wingetcreate echoue alors avec "Le depot fourchu n'a pas pu etre synchronise".
+          # Resynchronisation prealable, non bloquante.
+          try {
+            Invoke-RestMethod -Method Post `
+              -Uri "https://api.github.com/repos/painteau/winget-pkgs/merge-upstream" `
+              -Headers @{ Authorization = "Bearer $env:WINGET_PAT"; Accept = "application/vnd.github+json" } `
+              -Body (@{ branch = "master" } | ConvertTo-Json) `
+              -ContentType "application/json"
+          } catch {
+            Write-Warning "Sync du fork winget-pkgs echoue (non bloquant) : $_"
+          }
+
+          Invoke-WebRequest -Uri "https://aka.ms/wingetcreate/latest" -OutFile "wingetcreate.exe"
+          .\wingetcreate.exe update Breizhzion.BeamMeUp `
+            --version $env:VERSION `
+            --urls "$env:INSTALLER_URL" `
+            --token $env:WINGET_PAT `
+            --submit `
+            --no-open

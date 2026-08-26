@@ -1,0 +1,62 @@
+[package]
+name = "beammeup"
+version = "0.1.0"
+description = "Sessions PowerShell/SSH partagées humain + agent dans une fenêtre unique"
+authors = ["BREIZHZION"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "beammeup"
+path = "src/main.rs"
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "beammeup_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+portable-pty = "0.9"
+tokio = { version = "1", features = ["rt-multi-thread", "net", "io-util", "macros", "time", "sync"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+clap = { version = "4", features = ["derive"] }
+tungstenite = "0.24"
+base64 = "0.22"
+strip-ansi-escapes = "0.2"
+# Résolution des dossiers de configuration par plateforme (%LOCALAPPDATA% sur Windows,
+# $XDG_CONFIG_HOME/~/.config sur Linux) : évite de lire les variables d'environnement à la main,
+# ce qui donnait un repli sur le répertoire courant hors Windows.
+dirs = "5"
+# Optional remote web access (see remote_web.rs): a small HTTP-only server (no WebSocket feature,
+# deliberately kept minimal) and random token generation.
+axum = { version = "0.7", features = ["json"] }
+rand = "0.8"
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.61", features = [
+    "Win32_Foundation",
+    "Win32_System_Console",
+    "Win32_Security",
+    "Win32_Security_Authorization",
+    "Win32_System_Threading",
+    "Win32_System_Pipes",
+    "Win32_Storage_FileSystem",
+    "Win32_UI_Shell",
+    "Win32_UI_WindowsAndMessaging",
+] }
+
+[target.'cfg(unix)'.dependencies]
+# Appels POSIX dont l'équivalent n'existe pas dans std : identifiant d'utilisateur pour isoler le
+# socket de contrôle, et détachement du process fenêtre relancé par le connecteur CLI.
+libc = "0.2"
+

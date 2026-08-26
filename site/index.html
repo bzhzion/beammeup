@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BeamMeUp · Shared Console for Human / Agent</title>
+<meta name="description" content="BeamMeUp: a single terminal window, shared in real time between you and an AI agent. Windows and Linux. PowerShell, cmd, Git Bash, WSL, bash, zsh, SSH: detected, never guessed." />
+<link rel="icon" type="image/svg+xml" href="assets/logo-trapezoid-transparent.svg" />
+<link rel="preconnect" href="https://cdn.breizhzion.com" crossorigin />
+<link rel="stylesheet" href="https://cdn.breizhzion.com/fonts/Antonio/Antonio.css" />
+<link rel="stylesheet" href="https://cdn.breizhzion.com/fonts/Archivo/Archivo.css" />
+<link rel="stylesheet" href="https://cdn.breizhzion.com/fonts/JetBrainsMono/JetBrainsMono.css" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<a class="skip-link" href="#contenu">Skip to main content</a>
+
+<div class="frame">
+
+  <!-- ───────────────────────── SIDEBAR (port side) ───────────────────────── -->
+  <aside class="sidebar" aria-label="Main navigation">
+    <div class="sidebar-cap sidebar-cap--top" aria-hidden="true"></div>
+    <div class="sidebar-brand">
+      <img src="assets/logo-trapezoid-transparent.svg" alt="" class="brand-mark" aria-hidden="true" />
+      <span class="brand-code">NCC&#8209;0001</span>
+      <!-- Visible only below the breakpoint: above it, the sidebar already
+           shows the full navigation, so a button would have nothing to open. -->
+      <button
+        id="nav-toggle"
+        class="nav-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="pillnav"
+        aria-label="Open navigation"
+      >
+        <span class="nav-toggle-bars" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="nav-toggle-label">MENU</span>
+      </button>
+    </div>
+    <nav class="pillnav" id="pillnav">
+      <a href="#hero" class="pill pill--orange"><span class="pill-code">01</span>Gateway</a>
+      <a href="#probleme" class="pill pill--red"><span class="pill-code">02</span>Alert</a>
+      <a href="#idee" class="pill pill--periwinkle"><span class="pill-code">03</span>Protocol</a>
+      <a href="#fonctions" class="pill pill--violet"><span class="pill-code">04</span>Systems</a>
+      <a href="#tutoriel" class="pill pill--blue"><span class="pill-code">05</span>Transmissions</a>
+      <a href="#securite" class="pill pill--orange"><span class="pill-code">06</span>Security</a>
+      <a href="#telechargement" class="pill pill--periwinkle pill--cta"><span class="pill-code">07</span>Beam Down</a>
+    </nav>
+    <div class="sidebar-readout" aria-hidden="true">
+      <span>LCARS&#8209;24176</span>
+      <span>ARCH.&nbsp;BEAMMEUP</span>
+    </div>
+    <div class="sidebar-cap sidebar-cap--bottom" aria-hidden="true"></div>
+  </aside>
+
+  <div class="main">
+    <!-- ───────────────────────── TOPBAR ───────────────────────── -->
+    <header class="topbar">
+      <div class="topbar-elbow" aria-hidden="true"></div>
+      <div class="topbar-bar">
+        <span class="topbar-chip topbar-chip--orange">BEAMMEUP</span>
+        <span class="topbar-chip topbar-chip--thin">OPERATIONS&nbsp;CONSOLE</span>
+        <span class="topbar-stardate" id="stardate" aria-label="Timestamp">STARDATE&nbsp;<span id="stardate-value">77415.2</span></span>
+        <span class="topbar-chip topbar-chip--status">
+          <span class="status-dot" aria-hidden="true"></span>SYSTEM&nbsp;OPERATIONAL
+        </span>
+      </div>
+    </header>
+
+    <main id="contenu">
+
+      <!-- ───────────────────────── HERO ───────────────────────── -->
+      <section id="hero" class="panel hero" aria-labelledby="hero-title">
+        <div class="hero-text">
+          <p class="eyebrow">Gateway&nbsp;01 · Shared Console</p>
+          <h1 id="hero-title">
+            One window.<br />
+            <span class="accent-orange">Two hands</span> on the keyboard.
+          </h1>
+          <p class="lede">
+            BeamMeUp opens a real terminal, on Windows as on Linux, where <strong>you</strong> and an
+            <strong>AI agent</strong> type into the same session, live. What the agent does,
+            you see. What you type, it sees. No hidden window, no
+            ghost process.
+          </p>
+          <div class="cta-row">
+            <a class="btn btn--primary" href="#telechargement">Initiate Transport</a>
+            <a class="btn btn--ghost" href="https://github.com/bzhzion/beammeup" target="_blank" rel="noopener">
+              View Source Code
+            </a>
+          </div>
+        </div>
+        <div class="hero-console" role="img" aria-label="Simulation of a BeamMeUp terminal session">
+          <div class="console-chrome">
+            <span class="console-tab console-tab--active">pwsh5 · my-work</span>
+            <span class="console-tab">gitbash</span>
+            <span class="console-tab">wsl:Debian</span>
+          </div>
+          <div class="console-body" id="console-typer" aria-hidden="true"></div>
+        </div>
+      </section>
+
+      <!-- ───────────────────────── PROBLEM ───────────────────────── -->
+      <section id="probleme" class="panel" aria-labelledby="probleme-title">
+        <div class="panel-head panel-head--red">
+          <span class="panel-tag">02 · ALERT</span>
+          <h2 id="probleme-title">An agent, no real terminal</h2>
+        </div>
+        <div class="panel-body two-col">
+          <p>
+            Code agents run inside a sandboxed shell whose standard input
+            <strong>is not a real terminal</strong>. The result: the slightest arrow-key menu, the
+            slightest <code>y/n</code> confirmation, the slightest interactive wizard
+            (<code>eas credentials</code>, <code>npm init</code>, an installer...) fails outright.
+          </p>
+          <div class="readout readout--error">
+            <p class="readout-line"><span class="readout-prompt">&gt;</span> npx eas credentials -p android</p>
+            <p class="readout-line readout-line--fault">Input is required, but stdin is not readable.</p>
+            <p class="readout-line readout-line--fault">PROCESS&nbsp;INTERRUPTED&nbsp;· NO INPUT POSSIBLE</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───────────────────────── IDEA ───────────────────────── -->
+      <section id="idee" class="panel" aria-labelledby="idee-title">
+        <div class="panel-head panel-head--periwinkle">
+          <span class="panel-tag">03 · PROTOCOL</span>
+          <h2 id="idee-title">One command post, two operators</h2>
+        </div>
+        <div class="panel-body">
+          <p class="lede-small">
+            BeamMeUp is not a server you start ahead of time, nor an MCP extension to
+            configure. The agent simply calls the program, the way it would call
+            <code>git</code> or <code>npm</code>. If the console isn't lit up, it
+            lights up, visible, right away.
+          </p>
+          <div class="crew-grid">
+            <div class="crew-card">
+              <span class="crew-role accent-periwinkle">HUMAN OPERATOR</span>
+              <p>Types on the keyboard, watches live, takes back control at any moment on the
+                 same session.</p>
+            </div>
+            <div class="crew-divider" aria-hidden="true">⇄</div>
+            <div class="crew-card">
+              <span class="crew-role accent-orange">AI AGENT</span>
+              <p>Opens sessions, sends commands, reads results, never without
+                 the console being on screen.</p>
+            </div>
+          </div>
+          <p class="axiom">
+            <span class="axiom-tag">DIRECTIVE&nbsp;01</span>
+            No stealth mode. No execution without a visible window. Ever.
+          </p>
+        </div>
+      </section>
+
+      <!-- ───────────────────────── FEATURES ───────────────────────── -->
+      <section id="fonctions" class="panel" aria-labelledby="fonctions-title">
+        <div class="panel-head panel-head--violet">
+          <span class="panel-tag">04 · SYSTEMS</span>
+          <h2 id="fonctions-title">Onboard Systems</h2>
+        </div>
+        <div class="panel-body">
+          <div class="feature-grid">
+
+            <article class="feature-card">
+              <span class="feature-code accent-orange">SYS.01</span>
+              <h3>Shell Detection</h3>
+              <p>On Windows: PowerShell&nbsp;5.1 and 7, <code>cmd.exe</code>, Git&nbsp;Bash,
+                 every WSL distribution. On Linux: your login shell, then everything
+                 declared in <code>/etc/shells</code>. Nothing is assumed, everything is scanned on the
+                 real machine at every launch.</p>
+            </article>
+
+            <article class="feature-card">
+              <span class="feature-code accent-blue">SYS.02</span>
+              <h3>SSH &amp; File Transfer</h3>
+              <p>The system's real <code>ssh</code>/<code>scp</code> client is used as
+                 is: your <code>known_hosts</code>, your key agent, no
+                 homemade library to trust.</p>
+            </article>
+
+            <article class="feature-card">
+              <span class="feature-code accent-periwinkle">SYS.03</span>
+              <h3>Session Labels</h3>
+              <p>Name a session to find it again without memorizing a UUID, built for
+                 several agents running in parallel on the same machine.</p>
+            </article>
+
+            <article class="feature-card">
+              <span class="feature-code accent-violet">SYS.04</span>
+              <h3>Reusable Snippets</h3>
+              <p>Save a frequent command, replay it with one keyword, without ever
+                 storing a secret in it.</p>
+            </article>
+
+            <article class="feature-card">
+              <span class="feature-code accent-orange">SYS.05</span>
+              <h3>Clean Read &amp; Export</h3>
+              <p>Grab a session's scrollback into a file, with or without
+                 ANSI codes, in full or just since the last command sent.</p>
+            </article>
+
+            <article class="feature-card">
+              <span class="feature-code accent-blue">SYS.06</span>
+              <h3>Real Vision</h3>
+              <p>Remotely driven fullscreen, and a real screenshot of the console:
+                 the agent can literally look at what's on screen.</p>
+            </article>
+
+            <article class="feature-card">
+              <span class="feature-code accent-violet">SYS.07</span>
+              <h3>Command Completion Detection</h3>
+              <p>The agent sends a command and waits for it to actually finish: output and return
+                 code sent back directly, no more guessing a delay then re-reading.</p>
+            </article>
+
+            <article class="feature-card">
+              <span class="feature-code accent-orange">SYS.08</span>
+              <h3>Remote Files Without a Session</h3>
+              <p>List, read, write, rename, or delete a file on an SSH server without
+                 opening a tab: a minimal SFTP equivalent, via the same system client.</p>
+            </article>
+
+            <article class="feature-card">
+              <span class="feature-code accent-periwinkle">SYS.09</span>
+              <h3>Multiple Workstations</h3>
+              <p>Duplicate a session, reopen the last closed one, close everything without quitting the
+                 console, or bring a specific tab to the front among several running at once.</p>
+            </article>
+
+            <article class="feature-card">
+              <span class="feature-code accent-violet">SYS.10</span>
+              <h3>Always Standing By</h3>
+              <p>Closing the window kills no session: a discreet icon stays in the
+                 notification area, with a menu to reopen the window, clear the tabs, or quit
+                 for good.</p>
+            </article>
+
+            <article class="feature-card">
+              <span class="feature-code accent-orange">SYS.11</span>
+              <h3>Optional Remote Access</h3>
+              <p>Off by default. Opt in to view and control a session from your phone over the
+                 network (your Tailscale network, for instance): you choose the bind address and
+                 the authentication, nothing is forced on you.</p>
+            </article>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ───────────────────────── TUTORIAL ───────────────────────── -->
+      <section id="tutoriel" class="panel" aria-labelledby="tutoriel-title">
+        <div class="panel-head panel-head--blue">
+          <span class="panel-tag">05 · TRANSMISSIONS</span>
+          <h2 id="tutoriel-title">Standard Command Sequence</h2>
+        </div>
+        <div class="panel-body">
+          <p class="lede-small">Four transmissions are enough to open a session, work in it, then read back the result.</p>
+          <ol class="transmission-log">
+            <li>
+              <span class="tx-id">COM&#8209;1</span>
+              <div class="tx-body">
+                <p class="tx-label">Survey the systems available on board</p>
+                <pre><code>beammeup shells</code></pre>
+              </div>
+            </li>
+            <li>
+              <span class="tx-id">COM&#8209;2</span>
+              <div class="tx-body">
+                <p class="tx-label">Open a named workstation (the identifier comes from the
+                   previous command: <code>pwsh5</code> on Windows, <code>bash</code> on
+                   Linux)</p>
+                <pre><code>beammeup open --shell bash --label my-work</code></pre>
+              </div>
+            </li>
+            <li>
+              <span class="tx-id">COM&#8209;3</span>
+              <div class="tx-body">
+                <p class="tx-label">Send an instruction</p>
+                <pre><code>beammeup send my-work "npm run build" --enter</code></pre>
+              </div>
+            </li>
+            <li>
+              <span class="tx-id">COM&#8209;4</span>
+              <div class="tx-body">
+                <p class="tx-label">Read back the log, with no visual noise</p>
+                <pre><code>beammeup read my-work --plain --last</code></pre>
+              </div>
+            </li>
+            <li>
+              <span class="tx-id">COM&#8209;5</span>
+              <div class="tx-body">
+                <p class="tx-label">Or wait directly for the command to finish, with its result</p>
+                <pre><code>beammeup exec my-work "npm run build"</code></pre>
+              </div>
+            </li>
+          </ol>
+          <p class="tutorial-footnote">
+            The full tutorial (every command, every case) lives in the
+            <a href="https://github.com/bzhzion/beammeup#tutoriel-complet" target="_blank" rel="noopener">repo README</a>.
+          </p>
+        </div>
+      </section>
+
+      <!-- ───────────────────────── SECURITY ───────────────────────── -->
+      <section id="securite" class="panel" aria-labelledby="securite-title">
+        <div class="panel-head panel-head--orange">
+          <span class="panel-tag">06 · SECURITY</span>
+          <h2 id="securite-title">Clearance &amp; Safeguards</h2>
+        </div>
+        <div class="panel-body">
+          <div class="clearance-grid">
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">◆</span>
+              <div>
+                <h3>No Secret Stored</h3>
+                <p>No password, no key, no token. Everything goes through your already
+                   configured system tools (SSH agent, <code>known_hosts</code>).</p>
+              </div>
+            </div>
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">◆</span>
+              <div>
+                <h3>Elevation, By Design</h3>
+                <p>The console runs as administrator so local sessions inherit
+                   its rights, without repeated prompts: a deliberate choice for a
+                   personal machine, not a shared server.</p>
+              </div>
+            </div>
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">◆</span>
+              <div>
+                <h3>Local Channel Only</h3>
+                <p>The control channel and the screenshot port only listen locally,
+                   restricted to the Windows account that launched the app.</p>
+              </div>
+            </div>
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">◆</span>
+              <div>
+                <h3>Remote Access, Your Call</h3>
+                <p>The one deliberate exception to local only, and it stays opt-in: you pick the
+                   bind address and the token, the console never decides for you.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───────────────────────── DOWNLOAD ───────────────────────── -->
+      <section id="telechargement" class="panel panel--cta" aria-labelledby="telechargement-title">
+        <div class="panel-head panel-head--periwinkle">
+          <span class="panel-tag">07 · TRANSPORT</span>
+          <h2 id="telechargement-title">Ready to Come Aboard</h2>
+        </div>
+        <div class="panel-body">
+          <p class="lede-small">
+            Windows 10/11 and Linux. Installers built and signed on every release.
+          </p>
+
+          <div class="platform-grid">
+            <article class="platform-card">
+              <span class="feature-code accent-blue">WINDOWS</span>
+              <p>MSI or NSIS installer, signed (Azure Trusted Signing).</p>
+              <pre><code>winget install Breizhzion.BeamMeUp</code></pre>
+            </article>
+
+            <article class="platform-card">
+              <span class="feature-code accent-orange">LINUX</span>
+              <p>Debian package via the in-house repository, or a universal AppImage.</p>
+              <pre><code>sudo apt install beammeup</code></pre>
+            </article>
+          </div>
+
+          <div class="cta-row">
+            <a class="btn btn--primary btn--large" href="https://github.com/bzhzion/beammeup/releases/latest" target="_blank" rel="noopener">
+              Download the Latest Version
+            </a>
+            <a class="btn btn--ghost" href="https://github.com/bzhzion/beammeup" target="_blank" rel="noopener">
+              View the GitHub Repository
+            </a>
+          </div>
+          <p class="tutorial-footnote">
+            Full instructions (apt repository key, AppImage, building from source)
+            are in the
+            <a href="https://github.com/bzhzion/beammeup#installation" target="_blank" rel="noopener">repo README</a>.
+          </p>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        BeamMeUp · <a href="https://github.com/bzhzion/beammeup/blob/main/LICENSE" target="_blank" rel="noopener">BZ&#8209;1.1 License</a>
+        (BREIZHZION Personal Use License). Personal use only.
+      </p>
+      <p class="site-footer-sub">A <a href="https://breizhzion.com" target="_blank" rel="noopener">BREIZHZION</a> project.</p>
+    </footer>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

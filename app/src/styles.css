@@ -1,0 +1,698 @@
+/* Fonts embedded in the binary, not loaded from cdn.breizhzion.com. Three reasons: the app's CSP
+   (`style-src 'self'`) blocks an external stylesheet, an installed app (.deb/MSI) must display
+   correctly offline, and it removes a network dependency at startup. The showcase site still
+   uses the CDN: its context is different. */
+
+@font-face {
+  font-family: "Antonio";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./assets/fonts/Antonio-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Antonio";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./assets/fonts/Antonio-Bold.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./assets/fonts/Archivo-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./assets/fonts/Archivo-Bold.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JetBrainsMono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./assets/fonts/JetBrainsMono-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JetBrainsMono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./assets/fonts/JetBrainsMono-Bold.woff2") format("woff2");
+}
+
+:root {
+  color-scheme: dark;
+
+  --black: #050506;
+  --panel-black: #0a0a0d;
+  --hull: #121218;
+
+  --orange: #ff9f1c;
+  --periwinkle: #a6b0ff;
+  --violet: #c98fe0;
+  --blue: #7fd6e6;
+  --red-alert: #ff5a4e;
+
+  --text: #f4f1e8;
+  --text-dim: #b9b4a8;
+  --text-faint: #726e66;
+
+  /* Fallbacks for both platforms: Windows fonts first (Segoe UI, Arial Narrow, Cascadia Code),
+     then their commonly installed Linux equivalents, then the generic family. */
+  --font-display: "Antonio", "Arial Narrow", "Liberation Sans Narrow", "DejaVu Sans Condensed",
+    sans-serif;
+  --font-body: "Archivo", "Segoe UI", "Cantarell", "Noto Sans", "DejaVu Sans", sans-serif;
+  --font-mono: "JetBrainsMono", "Cascadia Code", "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  --radius-pill: 999px;
+  --radius-sm: 10px;
+
+  /* LCARS color rotation for the tabs: no gradient, a flat color per tab. */
+  --rainbow: linear-gradient(
+    90deg,
+    #ff0033,
+    #ff7a00,
+    #ffd500,
+    #2ecc40,
+    #0074d9,
+    #5a2ebf,
+    #b10dc9
+  );
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--black);
+  color: var(--text);
+  font-family: var(--font-body);
+  overflow: hidden;
+}
+
+/* `#app` is now a row (sidebar + session area), not a column: the window is almost always used
+   narrow and tall (shared-screen use with the agent window next to it), and a horizontal bar at
+   the top left far too little room for the sessions themselves once several tabs were open. */
+#app {
+  display: flex;
+  flex-direction: row;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+  }
+}
+
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+}
+
+/* -------------------------------------------------------------------------
+   Sidebar (LCARS port side): logo, full screen, new session, list of open
+   sessions. Replaces the former horizontal bar and the "all sessions" panel
+   that used to unfold over the top (and could end up hidden behind the
+   window): in a vertical layout, the list natively fits the available
+   height, with its own scrolling if needed.
+   ------------------------------------------------------------------------- */
+
+/* LCARS frame: `#sidebar` IS the colored rectangle, with a rounded top right corner (the only
+   visible corner, on the session area side). `.sidebar-inner`, inset only on the top and right
+   (`padding` on `#sidebar`, never a margin on the left/bottom), is the dark rectangle that holds
+   all the actual content, so the frame's color only appears as a thin strip on those two sides.
+   One single shape, one single rounded corner: no more separate pieces that need to line up (the
+   previous version had two, a cap plus a distinct container border, which left a visible gap,
+   found during testing on 2026-08-26). */
+#sidebar {
+  width: 236px;
+  flex: none;
+  background: var(--violet);
+  border-top-right-radius: var(--radius-md);
+  padding: 6px 3px 0 0;
+  overflow: hidden;
+}
+
+.sidebar-inner {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-black);
+  overflow: hidden;
+}
+
+.sidebar-brand {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 8px 12px;
+}
+
+#brand {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: 4px;
+  background: var(--rainbow);
+  clip-path: polygon(38% 0, 62% 0, 95% 100%, 5% 100%);
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.brand-name {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 15px;
+  line-height: 1.1;
+}
+
+.brand-version {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+#fullscreen-toggle {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--hull);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  cursor: pointer;
+  transition: filter 0.12s, background 0.12s;
+}
+
+#fullscreen-toggle:hover {
+  filter: brightness(1.3);
+}
+
+#fullscreen-toggle.active {
+  background: var(--orange);
+  color: var(--black);
+  border-color: transparent;
+}
+
+.sidebar-section {
+  flex: none;
+  padding: 10px 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sidebar-section--grow {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar-label {
+  display: block;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.new-session-row {
+  display: flex;
+  gap: 6px;
+}
+
+#shell-picker {
+  flex: 1;
+  min-width: 0;
+}
+
+#shell-picker,
+#ssh-input {
+  background: var(--hull);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+#open-shell {
+  flex: none;
+  width: 30px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  line-height: 1;
+  background: var(--periwinkle);
+  color: var(--black);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: filter 0.12s;
+}
+
+#open-shell:hover {
+  filter: brightness(1.15);
+}
+
+/* Collapsed by default (see the comment in index.html): rarely used by a human, the `<summary>`
+   stays a simple discreet link rather than a button with the same visual weight as
+   "New session". */
+#ssh-details {
+  margin-top: 10px;
+}
+
+#ssh-details summary {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--text-dim);
+  cursor: pointer;
+  list-style: none;
+}
+
+#ssh-details summary::-webkit-details-marker {
+  display: none;
+}
+
+#ssh-details summary::before {
+  content: "▸ ";
+  color: var(--blue);
+}
+
+#ssh-details[open] summary::before {
+  content: "▾ ";
+}
+
+#ssh-details summary:hover {
+  color: var(--text);
+}
+
+.ssh-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+#ssh-input::placeholder {
+  color: var(--text-faint);
+}
+
+#open-ssh {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  background: var(--blue);
+  color: var(--black);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: filter 0.12s;
+}
+
+#open-ssh:hover {
+  filter: brightness(1.15);
+}
+
+/* -------------------------------------------------------------------------
+   Session list (vertical, scrollable)
+   ------------------------------------------------------------------------- */
+
+#tabs {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 0;
+  /* Firefox (WebKitGTK on Linux applies the ::-webkit-scrollbar rules below instead, but both
+     syntaxes are safe to set together). */
+  scrollbar-width: thin;
+  scrollbar-color: var(--periwinkle) transparent;
+}
+
+/* Scrollbar styled to match the theme rather than the system's default rendering (ugly,
+   inconsistent with the rest of the interface): thin, rounded corners, a flat periwinkle that
+   lightens on hover. Same approach as the rest of the sidebar's interactive elements. */
+#tabs::-webkit-scrollbar {
+  width: 6px;
+}
+#tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
+#tabs::-webkit-scrollbar-thumb {
+  /* Semi-transparent color set directly (not `opacity`, unreliable on this pseudo-class
+     depending on the engine): `--periwinkle` (#a6b0ff) at 55%. */
+  background: rgba(166, 176, 255, 0.55);
+  border-radius: var(--radius-pill);
+}
+#tabs::-webkit-scrollbar-thumb:hover {
+  background: var(--text);
+}
+
+.tab-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: none;
+  border: none;
+  border-left: 3px solid transparent;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 8px 10px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: 13px;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.tab-row:hover {
+  background: var(--hull);
+  color: var(--text);
+}
+
+.tab-row.active {
+  background: var(--hull);
+  color: var(--text);
+  font-weight: 700;
+  border-left-color: var(--orange);
+}
+
+.tab-swatch {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* Rotation of flat LCARS colors for each session's swatch (no gradient, a flat color per
+   index, that is reserved for the logo). */
+.tab-color-0 {
+  background: var(--orange);
+}
+.tab-color-1 {
+  background: var(--periwinkle);
+}
+.tab-color-2 {
+  background: var(--violet);
+}
+.tab-color-3 {
+  background: var(--blue);
+}
+.tab-color-4 {
+  background: var(--red-alert);
+}
+
+.tab-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tab-close {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 0.12s, background 0.12s;
+}
+
+.tab-row:hover .tab-close,
+.tab-row.active .tab-close,
+.tab-row:focus-visible .tab-close {
+  opacity: 0.55;
+}
+
+.tab-close:hover {
+  opacity: 1 !important;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* -------------------------------------------------------------------------
+   Snippets: a selection menu rather than a list that would grow without
+   bound as more snippets get saved (found with just 2 entries during
+   testing on 2026-08-26).
+   ------------------------------------------------------------------------- */
+
+#snippets-section {
+  flex: none;
+}
+
+.snippet-select-row {
+  display: flex;
+  gap: 6px;
+}
+
+#snippet-picker {
+  flex: 1;
+  min-width: 0;
+  background: var(--hull);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+#snippet-picker:disabled {
+  color: var(--text-faint);
+}
+
+/* Same treatment as the header's full screen button: a square button with rounded corners. */
+#snippet-run {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--periwinkle);
+  color: var(--black);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  cursor: pointer;
+  transition: filter 0.12s;
+}
+
+#snippet-run:hover {
+  filter: brightness(1.15);
+}
+
+#snippet-run:disabled {
+  background: var(--hull);
+  color: var(--text-faint);
+  cursor: not-allowed;
+}
+
+.snippet-actions-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.snippet-action-btn {
+  flex: 1;
+  min-width: 0;
+  background: var(--hull);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 6px 4px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  cursor: pointer;
+  transition: filter 0.12s, background 0.12s, color 0.12s;
+}
+
+.snippet-action-btn:hover {
+  filter: brightness(1.3);
+}
+
+.snippet-action-btn:disabled {
+  color: var(--text-faint);
+  cursor: not-allowed;
+  filter: none;
+}
+
+/* Confirmation state before deletion (double click, see main.ts): the button changes color and
+   label rather than opening a native dialog box, to stay within the theme's visual language. */
+.snippet-action-btn--danger.confirming {
+  background: var(--red-alert);
+  color: var(--black);
+  border-color: transparent;
+}
+
+.text-btn {
+  background: none;
+  border: none;
+  color: var(--blue);
+  font-family: var(--font-body);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 0;
+}
+
+.text-btn:hover {
+  color: var(--text);
+}
+
+.snippet-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.snippet-add-form.hidden {
+  display: none;
+}
+
+#snippet-name-input,
+#snippet-text-input {
+  background: var(--hull);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.snippet-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#snippet-add-confirm {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  background: var(--periwinkle);
+  color: var(--black);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: filter 0.12s;
+}
+
+#snippet-add-confirm:hover {
+  filter: brightness(1.15);
+}
+
+/* -------------------------------------------------------------------------
+   Session area: LCARS framing styled after a bridge display, colored to
+   match the session currently shown (set dynamically by `activate()` via
+   the `--active-color` variable, orange by default before any session
+   exists).
+   ------------------------------------------------------------------------- */
+
+/* Same construction as `#sidebar`/`.sidebar-inner` (see its comment): `.session-frame` IS the
+   colored rectangle, with a rounded top right corner, and `#panes` is inset only on the top and
+   right. The title floats over the top strip rather than sitting in a separate banner: one
+   single shape, no pieces that need to line up. */
+.session-frame {
+  --active-color: var(--orange);
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  background: var(--active-color);
+  border-top-right-radius: var(--radius-md);
+  padding: 30px 6px 0 0;
+  transition: background 0.15s;
+}
+
+.session-frame-title {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 6px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 13px;
+  color: var(--black);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#panes {
+  height: 100%;
+  position: relative;
+  min-height: 0;
+  min-width: 0;
+  background: var(--black);
+}
+
+.pane {
+  position: absolute;
+  inset: 0;
+  padding: 8px;
+  display: none;
+}
+
+.pane.active {
+  display: block;
+}
+
+.xterm {
+  height: 100%;
+}

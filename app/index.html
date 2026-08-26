@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Fonts embedded via @font-face in styles.css (see the comment at the top of that file):
+         no loading from a CDN here, the app must display offline and the CSP forbids external
+         stylesheets. -->
+    <link rel="stylesheet" href="/src/styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BeamMeUp</title>
+    <script type="module" src="/src/main.ts" defer></script>
+  </head>
+
+  <body>
+    <div id="app">
+      <!-- Port-side sidebar: designed for a narrow window (shared-screen use with the agent
+           window to the right), so vertical rather than horizontal. The session list below
+           merges the former tab bar AND the "all sessions" panel that used to unfold over the
+           top: in a vertical layout everything already fits in one scrolling column, so there is
+           no more need for a second panel that could end up hidden behind the window when there
+           were many tabs.
+
+           LCARS frame built as a single colored rectangle (`#sidebar`) with a rounded top right
+           corner, on top of which a dark rectangle (`.sidebar-inner`) sits inset only on the top
+           and right (never on the left or bottom): the color then only shows as a thin strip on
+           those two sides, with no seam between separate pieces that need to line up. That seam
+           was visible as a gap in earlier versions (found during testing on 2026-08-26). -->
+      <aside id="sidebar" aria-label="BeamMeUp sessions">
+        <div class="sidebar-inner">
+          <div class="sidebar-brand">
+            <div id="brand" aria-hidden="true"></div>
+            <div class="brand-text">
+              <span class="brand-name">BeamMeUp</span>
+              <span class="brand-version" id="brand-version"></span>
+            </div>
+            <button id="fullscreen-toggle" title="Full screen" aria-pressed="false">
+              <span aria-hidden="true">⛶</span>
+            </button>
+          </div>
+
+          <div class="sidebar-section">
+            <label class="sidebar-label" for="shell-picker">New session</label>
+            <div class="new-session-row">
+              <select id="shell-picker" title="Interpreter to open"></select>
+              <button id="open-shell" title="Open the selected tab">+</button>
+            </div>
+            <!-- Collapsed by default: mostly used by the agent (`beammeup open --ssh` on the
+                 command line), rarely typed by hand by the human, so it does not need the same
+                 visual prominence as the local shell picker above. -->
+            <details id="ssh-details">
+              <summary>Manual SSH connection</summary>
+              <div class="ssh-row">
+                <input id="ssh-input" type="text" placeholder="user@host -i path/to/key" />
+                <button id="open-ssh">Connect</button>
+              </div>
+            </details>
+          </div>
+
+          <div class="sidebar-section sidebar-section--grow">
+            <span class="sidebar-label">Sessions</span>
+            <div id="tabs" role="list"></div>
+          </div>
+
+          <!-- Until now snippets could only be managed through the CLI
+               (`beammeup snippet add/list/run/remove`): no interface for the human inside the
+               window itself. A selection menu rather than a list that would grow without bound
+               as more snippets get saved; the ▶ button runs the selected one. -->
+          <div class="sidebar-section" id="snippets-section">
+            <span class="sidebar-label">Snippets</span>
+            <div class="snippet-select-row">
+              <select id="snippet-picker" title="Snippet to run"></select>
+              <button id="snippet-run" title="Run the selected snippet">
+                <span aria-hidden="true">▶</span>
+              </button>
+            </div>
+            <div class="snippet-actions-row">
+              <button id="snippet-edit-btn" class="snippet-action-btn">Edit</button>
+              <button id="snippet-add-btn" class="snippet-action-btn">Add</button>
+              <!-- Double-click confirmation (the button becomes "Confirm?" for a few seconds)
+                   instead of a native dialog box, to stay within the theme's visual language: see
+                   the "confirmation before destructive action" rule. -->
+              <button id="snippet-delete-btn" class="snippet-action-btn snippet-action-btn--danger">
+                Delete
+              </button>
+            </div>
+            <div id="snippet-add-form" class="snippet-add-form hidden">
+              <input id="snippet-name-input" type="text" placeholder="name" />
+              <input id="snippet-text-input" type="text" placeholder="command" />
+              <div class="snippet-form-actions">
+                <button id="snippet-add-confirm">Save</button>
+                <button id="snippet-add-cancel" class="text-btn">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Same frame technique as the sidebar (see its comment above), colored to match the
+           session currently shown (set dynamically by `activate()` via the `--active-color`
+           variable, orange by default before any session exists). -->
+      <section class="session-frame">
+        <span class="session-frame-title" id="session-frame-title">No session</span>
+        <main id="panes"></main>
+      </section>
+    </div>
+  </body>
+</html>

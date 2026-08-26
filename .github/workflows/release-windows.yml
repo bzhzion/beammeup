@@ -1,0 +1,84 @@
+name: Release Windows (Tauri)
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build (e.g. v0.2.0), empty means latest vX.Y.Z tag'
+        required: false
+        default: ''
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    # windows-latest (GitHub-hosted) et non un runner self-hosted : recommandation standard
+    # GitHub pour un repo PUBLIC (un runner self-hosted expose l'infrastructure a un risque
+    # d'execution de code non maitrise). windows-latest inclut deja Rust + Visual Studio
+    # Build Tools (C++), pas d'install a faire.
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Version depuis le tag
+        id: version
+        shell: pwsh
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          $ref = $env:INPUT_TAG
+          if (-not $ref) { $ref = $env:GITHUB_REF_NAME }
+          if ($ref -notlike 'v*.*.*') { $ref = (git describe --tags --abbrev=0 --match 'v[0-9]*.[0-9]*.[0-9]*') }
+          $version = $ref.TrimStart('v')
+          Write-Host "Version: $version"
+          "version=$version" >> $env:GITHUB_OUTPUT
+          (Get-Content app/package.json -Raw) -replace '"version": "\d+\.\d+\.\d+"', "`"version`": `"$version`"" | Set-Content app/package.json -NoNewline
+          (Get-Content app/src-tauri/tauri.conf.json -Raw) -replace '"version": "\d+\.\d+\.\d+"', "`"version`": `"$version`"" | Set-Content app/src-tauri/tauri.conf.json -NoNewline
+          (Get-Content app/src-tauri/Cargo.toml -Raw) -replace '(?m)^version = "\d+\.\d+\.\d+"', "version = `"$version`"" | Set-Content app/src-tauri/Cargo.toml -NoNewline
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Installer les dependances npm
+        working-directory: app
+        run: npm ci
+
+      - name: Build Tauri (MSI + NSIS)
+        working-directory: app
+        run: npm run tauri build
+
+      - name: Signer les installateurs (Azure Trusted Signing)
+        uses: azure/artifact-signing-action@v2
+        with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          endpoint: https://weu.codesigning.azure.net/
+          signing-account-name: breizhzion-signing
+          certificate-profile-name: breizhzion-public
+          files-folder: app/src-tauri/target/release/bundle
+          files-folder-filter: exe,msi
+          files-folder-recurse: true
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      - name: GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: BeamMeUp ${{ steps.version.outputs.version }}
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: true
+          files: |
+            app/src-tauri/target/release/bundle/msi/*.msi
+            app/src-tauri/target/release/bundle/nsis/*.exe

@@ -1,0 +1,93 @@
+name: Release Linux (Tauri)
+
+# Same trigger as the Windows workflow: a `vX.Y.Z` tag publishes both platforms into the same
+# GitHub Release, without having to remember to launch one after the other.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build (e.g. v0.2.0), empty means latest vX.Y.Z tag'
+        required: false
+        default: ''
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    # ubuntu-latest (GitHub-hosted) et non un runner self-hosted : meme raisonnement que pour le
+    # workflow Windows, ce repo est PUBLIC et un runner self-hosted y exposerait l'infrastructure
+    # a un risque d'execution de code non maitrise.
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Version depuis le tag
+        id: version
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          REF="$INPUT_TAG"
+          [ -z "$REF" ] && REF="$GITHUB_REF_NAME"
+          case "$REF" in
+            v*.*.*) ;;
+            *) REF=$(git describe --tags --abbrev=0 --match 'v[0-9]*.[0-9]*.[0-9]*') ;;
+          esac
+          VERSION="${REF#v}"
+          echo "Version: $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          # Version patchee a la volee, jamais commitee : le depot ne porte que la version de
+          # developpement, le tag fait foi. Meme approche que le workflow Windows.
+          sed -i "s/\"version\": \"[0-9]*\.[0-9]*\.[0-9]*\"/\"version\": \"$VERSION\"/" app/package.json
+          sed -i "s/\"version\": \"[0-9]*\.[0-9]*\.[0-9]*\"/\"version\": \"$VERSION\"/" app/src-tauri/tauri.conf.json
+          sed -i "0,/^version = \"[0-9]*\.[0-9]*\.[0-9]*\"/s//version = \"$VERSION\"/" app/src-tauri/Cargo.toml
+
+      # webkit2gtk + GTK/appindicator/rsvg : necessaires au build ET au bundling (.deb, AppImage).
+      - name: Dependances systeme Tauri
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev libgtk-3-dev libsoup-3.0-dev \
+            librsvg2-dev libayatana-appindicator3-dev patchelf \
+            build-essential pkg-config
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Installer les dependances npm
+        working-directory: app
+        run: npm ci
+
+      # Toujours via la CLI Tauri, jamais `cargo build` : c'est elle qui active la feature
+      # `custom-protocol`, sans laquelle la fenetre chargerait le serveur de developpement au lieu
+      # de l'interface embarquee. Un `compile_error!` dans main.rs bloque desormais le mauvais
+      # chemin, mais autant que le workflow dise explicitement ce qu'il fait.
+      - name: Build Tauri (deb + AppImage)
+        working-directory: app
+        run: npm run tauri build -- --bundles deb,appimage
+
+      - name: Nom des artefacts
+        id: artifacts
+        run: |
+          DEB=$(ls app/src-tauri/target/release/bundle/deb/*.deb | head -1)
+          APPIMAGE=$(ls app/src-tauri/target/release/bundle/appimage/*.AppImage | head -1)
+          echo "deb=$DEB" >> "$GITHUB_OUTPUT"
+          echo "appimage=$APPIMAGE" >> "$GITHUB_OUTPUT"
+          echo "deb_name=$(basename "$DEB")" >> "$GITHUB_OUTPUT"
+
+      # Le repo etant public, les assets de la Release sont deja des URLs stables et publiquement
+      # accessibles : pas besoin d'un bucket intermediaire pour les rendre telechargeables.
+      - name: GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          files: |
+            app/src-tauri/target/release/bundle/deb/*.deb
+            app/src-tauri/target/release/bundle/appimage/*.AppImage

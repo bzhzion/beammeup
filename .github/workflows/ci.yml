@@ -1,0 +1,74 @@
+name: CI
+
+# Compilation check on BOTH platforms on every push and pull request.
+#
+# Why: the code has many `#[cfg(windows)]` / `#[cfg(unix)]` branches, and it's impossible to
+# compile for one from the other without a cross toolchain. Without this workflow, a change tested
+# on one platform could break the other and only get discovered when publishing a release, which is
+# too late.
+#
+# Deliberately limited to `cargo check` plus a frontend build: fast, and enough to catch
+# compilation errors and misplaced `cfg` attributes. The full installer build stays in the release
+# workflows, triggered by tag.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: cargo check (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # Don't stop the other platform as soon as one fails: when a `cfg` is misplaced, knowing
+      # whether the issue affects one platform or both saves time.
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Tauri's system dependencies on Linux (webview + GTK). On Windows, WebView2 and the Visual
+      # Studio Build Tools are already present on the GitHub image.
+      - name: System dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev libgtk-3-dev libsoup-3.0-dev \
+            librsvg2-dev libayatana-appindicator3-dev patchelf
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install npm dependencies
+        working-directory: app
+        run: npm ci
+
+      # `cargo check` compiles the crate but reads `frontendDist` (../dist) through tauri-build:
+      # without the built frontend, compilation fails on a missing path.
+      - name: Build frontend
+        working-directory: app
+        run: npm run build
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            app/src-tauri/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('app/src-tauri/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: cargo check
+        working-directory: app/src-tauri
+        # Warnings are treated as errors: this is what catches dead code left behind by a
+        # misplaced `cfg`, the most common symptom of a porting regression.
+        env:
+          RUSTFLAGS: -D warnings
+        run: cargo check --all-targets

@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>BeamMeUp Remote</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0d1117;
+    --panel: #151b23;
+    --border: #2a323c;
+    --text: #e6edf3;
+    --muted: #8b98a5;
+    --accent: #58a6ff;
+    --danger: #f85149;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    padding: 12px 16px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  header h1 {
+    font-size: 15px;
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    flex: 0 0 auto;
+  }
+  select, button, input {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+  select {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  button {
+    cursor: pointer;
+    background: var(--accent);
+    color: #06121f;
+    font-weight: 600;
+    border: none;
+    flex: 0 0 auto;
+  }
+  button:active { opacity: 0.85; }
+  button.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  main {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  #output {
+    flex: 1 1 auto;
+    margin: 0;
+    padding: 12px 16px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  #status {
+    padding: 4px 16px;
+    font-size: 12px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+  }
+  form#send-form {
+    display: flex;
+    gap: 8px;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+  }
+  form#send-form input[type="text"] {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  #overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 10;
+  }
+  #overlay.hidden { display: none; }
+  #overlay .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    max-width: 340px;
+    width: 100%;
+  }
+  #overlay h2 {
+    font-size: 15px;
+    margin: 0 0 10px;
+  }
+  #overlay p {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 0 0 12px;
+  }
+  #overlay input {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  #overlay button {
+    width: 100%;
+  }
+  #overlay .error {
+    color: var(--danger);
+    font-size: 12px;
+    min-height: 16px;
+    margin: -4px 0 8px;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>BeamMeUp</h1>
+    <select id="session-select"></select>
+    <button type="button" class="secondary" id="refresh-btn">Refresh</button>
+  </header>
+  <main>
+    <pre id="output"></pre>
+    <div id="status">No session selected.</div>
+    <form id="send-form">
+      <input type="text" id="send-input" placeholder="Type a command..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+      <button type="submit">Send</button>
+    </form>
+  </main>
+
+  <div id="overlay" class="hidden">
+    <div class="card">
+      <h2>Access token required</h2>
+      <p>Enter the token printed by <code>beammeup web on</code> on the host machine.</p>
+      <div class="error" id="token-error"></div>
+      <input type="password" id="token-input" placeholder="Token" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+      <button type="button" id="token-submit">Unlock</button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var POLL_INTERVAL_MS = 1500;
+      var TOKEN_KEY = "beammeup_remote_token";
+
+      var sessionSelect = document.getElementById("session-select");
+      var refreshBtn = document.getElementById("refresh-btn");
+      var output = document.getElementById("output");
+      var statusEl = document.getElementById("status");
+      var sendForm = document.getElementById("send-form");
+      var sendInput = document.getElementById("send-input");
+      var overlay = document.getElementById("overlay");
+      var tokenInput = document.getElementById("token-input");
+      var tokenSubmit = document.getElementById("token-submit");
+      var tokenError = document.getElementById("token-error");
+
+      var currentId = null;
+      var cursor = 0;
+      var pollTimer = null;
+
+      function getToken() {
+        return sessionStorage.getItem(TOKEN_KEY) || "";
+      }
+
+      function setToken(value) {
+        if (value) {
+          sessionStorage.setItem(TOKEN_KEY, value);
+        } else {
+          sessionStorage.removeItem(TOKEN_KEY);
+        }
+      }
+
+      function showTokenPrompt(message) {
+        tokenError.textContent = message || "";
+        overlay.classList.remove("hidden");
+      }
+
+      function hideTokenPrompt() {
+        overlay.classList.add("hidden");
+      }
+
+      // Every fetch to /api/* goes through here: adds the bearer header if a token is known, and
+      // reacts to a 401 by clearing the stored token and re-prompting (the token in
+      // sessionStorage may have expired server-side if the server was restarted with a new one).
+      function apiFetch(path, options) {
+        options = options || {};
+        var headers = options.headers ? Object.assign({}, options.headers) : {};
+        var token = getToken();
+        if (token) {
+          headers["Authorization"] = "Bearer " + token;
+        }
+        options.headers = headers;
+        return fetch(path, options).then(function (res) {
+          if (res.status === 401) {
+            setToken("");
+            showTokenPrompt("Invalid or expired token, please try again.");
+            throw new Error("unauthorized");
+          }
+          return res;
+        });
+      }
+
+      function loadSessions() {
+        return apiFetch("/api/sessions")
+          .then(function (res) { return res.json(); })
+          .then(function (sessions) {
+            var previous = sessionSelect.value;
+            sessionSelect.innerHTML = "";
+            if (!sessions.length) {
+              var opt = document.createElement("option");
+              opt.textContent = "(no session open)";
+              opt.value = "";
+              sessionSelect.appendChild(opt);
+              sessionSelect.disabled = true;
+              return;
+            }
+            sessionSelect.disabled = false;
+            sessions.forEach(function (s) {
+              var opt = document.createElement("option");
+              opt.value = s.id;
+              var label = s.label ? s.label : s.title;
+              opt.textContent = (s.alive ? "" : "[closed] ") + label + " (" + s.kind + ")";
+              sessionSelect.appendChild(opt);
+            });
+            if (previous && sessions.some(function (s) { return s.id === previous; })) {
+              sessionSelect.value = previous;
+            }
+            if (sessionSelect.value !== currentId) {
+              selectSession(sessionSelect.value);
+            }
+          })
+          .catch(function (err) {
+            if (err.message !== "unauthorized") {
+              statusEl.textContent = "Failed to load sessions: " + err.message;
+            }
+          });
+      }
+
+      function selectSession(id) {
+        currentId = id || null;
+        cursor = 0;
+        output.textContent = "";
+        statusEl.textContent = currentId ? "Connected to " + currentId : "No session selected.";
+      }
+
+      // Progress bars (apt, curl, npm...) rewrite the same line in place with a bare carriage
+      // return ("\r") instead of a newline: a real terminal overwrites the line, but this page
+      // has no terminal emulation, it just appends raw text, so those updates used to pile up
+      // one after another as garbled wrapped text. Simulated here by keeping only the last
+      // segment between two "\r" on each line, which is what a terminal would actually show.
+      function collapseCarriageReturns(text) {
+        return text
+          .split("\n")
+          .map(function (line) {
+            var parts = line.split("\r");
+            return parts[parts.length - 1];
+          })
+          .join("\n");
+      }
+
+      function poll() {
+        if (!currentId) return;
+        apiFetch(
+          "/api/sessions/" + encodeURIComponent(currentId) + "/read?plain=true&since=" + cursor
+        )
+          .then(function (res) { return res.json(); })
+          .then(function (data) {
+            if (data.error) {
+              statusEl.textContent = "error: " + data.error;
+              return;
+            }
+            if (data.data) {
+              var atBottom =
+                output.scrollHeight - output.scrollTop - output.clientHeight < 40;
+              output.textContent += collapseCarriageReturns(data.data);
+              if (atBottom) {
+                output.scrollTop = output.scrollHeight;
+              }
+            }
+            cursor = data.cursor;
+            statusEl.textContent = data.alive ? "Connected to " + currentId : "Session closed.";
+          })
+          .catch(function () {
+            /* transient errors are silently retried on the next tick */
+          });
+      }
+
+      sessionSelect.addEventListener("change", function () {
+        selectSession(sessionSelect.value);
+      });
+
+      refreshBtn.addEventListener("click", function () {
+        loadSessions();
+      });
+
+      sendForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        if (!currentId) return;
+        var text = sendInput.value;
+        if (!text) return;
+        apiFetch("/api/sessions/" + encodeURIComponent(currentId) + "/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: text + "\r" }),
+        })
+          .then(function (res) { return res.json(); })
+          .then(function (data) {
+            if (data.error) {
+              statusEl.textContent = "error: " + data.error;
+              return;
+            }
+            sendInput.value = "";
+          })
+          .catch(function () {
+            /* handled by apiFetch (401) or ignored (transient) */
+          });
+      });
+
+      tokenSubmit.addEventListener("click", function () {
+        var value = tokenInput.value.trim();
+        if (!value) return;
+        setToken(value);
+        hideTokenPrompt();
+        tokenInput.value = "";
+        loadSessions();
+      });
+
+      tokenInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+          tokenSubmit.click();
+        }
+      });
+
+      loadSessions();
+      pollTimer = setInterval(poll, POLL_INTERVAL_MS);
+      setInterval(loadSessions, POLL_INTERVAL_MS * 4);
+    })();
+  </script>
+</body>
+</html>
