@@ -447,6 +447,15 @@ exactly the same process: whatever one types, the other sees.
     this section's approach of documenting risk rather than pretending it away.
   - No WebSocket, HTTP polling only: a deliberate scope decision to keep this networked code small
     and auditable.
+  - **Plain HTTP, no TLS.** The token and everything a session displays travel unencrypted. Over
+    Tailscale this is already covered end to end by WireGuard, which is why that is the
+    recommended bind. Over ordinary Wi-Fi or a LAN with `0.0.0.0`, anyone able to observe that
+    network segment reads the token on the very first poll and then has the same access you do.
+    Do not bind to a network you would not send this machine's root password over in the clear.
+  - If you explicitly disable the token (`--no-token`), requests are still rejected unless the
+    `Host` header is an IP literal or `localhost`: this closes a DNS rebinding attack (a web page
+    you merely visit, on an unrelated domain, resolving itself onto this bind address) without
+    costing anything on the normal, token-protected path.
   - The endpoints give full read/write access to every open session (including whatever an
     elevated shell can do): treat the token exactly like the password to this machine's shell,
     because that is functionally what it is.

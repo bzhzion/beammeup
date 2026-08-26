@@ -70,12 +70,40 @@ pub fn load_config() -> RemoteConfig {
         .unwrap_or_default()
 }
 
+/// Unlike `snippets.json` (plain command text, not a secret by design), `remote.json` stores a
+/// real bearer token once the user has run `beammeup web on`: it is written with owner-only
+/// permissions on Linux (0600), otherwise a bare `std::fs::write` would respect the process
+/// umask (commonly 022, so world-readable 644), letting any other local account read a token
+/// that grants full network access to this machine's admin-elevated shell, inconsistent with the
+/// 0600 hardening already applied to the Unix control socket for the exact same threat model
+/// (a shared Linux machine, multiple local accounts). Windows is unaffected: `%LOCALAPPDATA%` is
+/// already ACL-scoped to the profile that owns it.
 pub fn save_config(config: &RemoteConfig) -> Result<(), String> {
     let path = config_path();
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent).map_err(|e| format!("failed to create directory: {e}"))?;
     }
     let json = serde_json::to_string_pretty(config).map_err(|e| e.to_string())?;
+
+    #[cfg(unix)]
+    {
+        use std::io::Write as _;
+        use std::os::unix::fs::OpenOptionsExt;
+        let mut file = std::fs::OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .mode(0o600)
+            .open(&path)
+            .map_err(|e| format!("write failed: {e}"))?;
+        file.write_all(json.as_bytes())
+            .map_err(|e| format!("write failed: {e}"))?;
+        // `.mode()` only applies to a fresh file: retighten one written by a pre-fix version.
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600));
+        return Ok(());
+    }
+    #[cfg(not(unix))]
     std::fs::write(&path, json).map_err(|e| format!("write failed: {e}"))
 }
 
@@ -222,19 +250,70 @@ fn build_router(state: AppState) -> Router {
         .route("/api/sessions/:id/read", get(api_read))
         .route("/api/sessions/:id/send", post(api_send))
         .with_state(state)
+        .layer(axum::middleware::from_fn(add_security_headers))
+}
+
+/// `X-Content-Type-Options`/`Cache-Control` on every response (terminal output must never be
+/// cached by an intermediary on a plain-HTTP LAN), `frame-ancestors 'none'` so a hostile local
+/// page cannot iframe this page and clickjack a phone into acting on it. No CSP beyond that: the
+/// page is a single self-contained document with no third-party resource and no user-supplied
+/// HTML (the client only ever uses `textContent`, never `innerHTML`), so there is nothing else
+/// here for a stricter policy to usefully restrict.
+async fn add_security_headers(
+    req: axum::extract::Request,
+    next: axum::middleware::Next,
+) -> axum::response::Response {
+    let mut res = next.run(req).await;
+    let headers = res.headers_mut();
+    headers.insert(
+        axum::http::header::X_CONTENT_TYPE_OPTIONS,
+        axum::http::HeaderValue::from_static("nosniff"),
+    );
+    headers.insert(
+        axum::http::header::CACHE_CONTROL,
+        axum::http::HeaderValue::from_static("no-store"),
+    );
+    headers.insert(
+        axum::http::header::CONTENT_SECURITY_POLICY,
+        axum::http::HeaderValue::from_static("frame-ancestors 'none'"),
+    );
+    res
 }
 
 async fn serve_page() -> Html<&'static str> {
     Html(REMOTE_WEB_HTML)
 }
 
+/// Only meaningful when no token is configured (`--no-token`): a browser that has been DNS-rebound
+/// onto this server (a hostile page's own domain resolved to a 1-second-TTL record that later
+/// repoints at this bind address) sends the attacker's hostname in `Host`, not an IP literal or
+/// `localhost`. Restricting to those closes that vector at zero cost on the normal, token-protected
+/// path (this check is never reached once a token is set): an IP literal or `localhost` cannot be
+/// DNS-rebound to, since there is no name resolution step to poison. A Tailscale MagicDNS hostname
+/// would fail this check too, but it is only reachable by someone already inside the tailnet, and
+/// setting a token (the documented recommendation for any non-loopback bind) sidesteps this
+/// entirely regardless.
+fn host_is_rebinding_safe(headers: &HeaderMap) -> bool {
+    let Some(host) = headers
+        .get(axum::http::header::HOST)
+        .and_then(|v| v.to_str().ok())
+    else {
+        return false;
+    };
+    let host = host.rsplit_once(':').map(|(h, _)| h).unwrap_or(host);
+    let host = host.trim_start_matches('[').trim_end_matches(']');
+    host == "localhost" || host.parse::<std::net::IpAddr>().is_ok()
+}
+
 /// Checks the `Authorization: Bearer <token>` header, falling back to a `?token=` query parameter
 /// (a phone browser's plain navigation to `/` cannot set custom headers, only JS-driven `fetch`
 /// calls after the page has loaded can). If no token is configured at all, every request is
-/// accepted without any check: an explicit user choice (they disabled auth), not an oversight.
+/// accepted as long as the `Host` header rules out DNS rebinding: an explicit user choice (they
+/// disabled auth), not an oversight, but one that must not also be exploitable by merely visiting
+/// an unrelated web page.
 fn check_auth(state: &AppState, headers: &HeaderMap, query_token: Option<&str>) -> bool {
     let Some(expected) = state.token.as_deref() else {
-        return true;
+        return host_is_rebinding_safe(headers);
     };
     let from_header = headers
         .get(axum::http::header::AUTHORIZATION)

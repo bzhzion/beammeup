@@ -704,12 +704,19 @@ mod unix_impl {
         if path.exists() {
             match UnixStream::connect(&path).await {
                 Ok(_) => {
+                    // Same reasoning as the bind-failure branch below: the Tauri window has
+                    // already been built by the time `serve()` runs, so a bare `return` here
+                    // would leave that window alive with no working control channel, a second,
+                    // CLI-unreachable instance driving its own PTYs. Exit the whole process
+                    // instead (mirrors the Windows side's `another_instance_is_running_and_focused`
+                    // check, which is meant to catch this earlier, but this is the fallback of
+                    // last resort if that race is lost).
                     eprintln!(
                         "beammeup: an instance is already responding on {}, this one won't start a \
                          control server",
                         path.display()
                     );
-                    return;
+                    std::process::exit(1);
                 }
                 Err(_) => {
                     // Nobody listening: stale socket, we can replace it.
