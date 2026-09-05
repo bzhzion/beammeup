@@ -1,0 +1,80 @@
+#!/bin/sh
+# Rejoue localement, avant meme d'atteindre GitHub, les memes controles que
+# .github/workflows/changelog-guard.yml sur un tag de version (refs/tags/v*.*.*).
+# But : ne plus decouvrir l'echec qu'apres coup en CI (tag deja pousse), ce qui
+# oblige a corriger puis deplacer le tag (git tag -f + push --force) et annuler
+# des runs en double declenches par erreur. Duplique volontairement la logique de
+# changelog-guard.yml plutot que d'y toucher : ce fichier CI est copie a l'identique
+# depuis admin/.claude/workflow-changelog-guard.yml (source de verite partagee entre
+# plusieurs repos), le modifier ici le desynchroniserait.
+#
+# Pense-bete comme pre-commit : `git push --no-verify` le saute.
+
+CHANGELOG="CHANGELOG.md"
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$local_ref" in
+    refs/tags/v*) ;;
+    *) continue ;;
+  esac
+
+  TAG="${local_ref#refs/tags/}"
+  VERSION="${TAG#v}"
+  echo ""
+  echo "  pre-push : verification du changelog pour le tag $TAG..."
+
+  if [ ! -f "$CHANGELOG" ]; then
+    echo "  BLOQUE : $CHANGELOG est absent."
+    exit 1
+  fi
+
+  FAIL=0
+
+  UNRELEASED=$(awk '/^## \[Unreleased\]/{f=1;next} /^## /{f=0} f' "$CHANGELOG" \
+               | grep -vE '^[[:space:]]*$' | grep -vE '^###' || true)
+  if [ -n "$UNRELEASED" ]; then
+    echo "  BLOQUE : la section [Unreleased] n'est pas vide pour le tag $TAG."
+    echo "  Renomme-la en '## [$VERSION] - $(date +%Y-%m-%d)' avant de pousser ce tag."
+    echo "  Contenu encore present :"
+    echo "$UNRELEASED" | sed 's/^/      /'
+    FAIL=1
+  else
+    echo "  OK : [Unreleased] est vide."
+  fi
+
+  PREV=$(git describe --tags --abbrev=0 --match 'v[0-9]*' "${TAG}^" 2>/dev/null || echo "")
+  if [ -z "$PREV" ]; then
+    echo "  OK : pas de tag anterieur, controle de diff ignore."
+  else
+    CODE=$(git diff --name-only "$PREV" "$TAG" \
+           | grep -vE '^(\.github/|\.githooks/|docs/|[^/]*\.md$|\.gitignore$|LICENSE$)' || true)
+    TOUCHED=$(git diff --name-only "$PREV" "$TAG" -- "$CHANGELOG" || true)
+    if [ -n "$CODE" ] && [ -z "$TOUCHED" ]; then
+      echo "  BLOQUE : du code a change entre $PREV et $TAG sans que $CHANGELOG soit touche."
+      echo "  Fichiers concernes :"
+      echo "$CODE" | sed 's/^/      /'
+      FAIL=1
+    else
+      echo "  OK : coherence code / changelog depuis $PREV."
+    fi
+  fi
+
+  if ! grep -qF "## [$VERSION]" "$CHANGELOG"; then
+    echo "  BLOQUE : aucune section '## [$VERSION]' dans $CHANGELOG pour le tag $TAG."
+    echo "  Attendu : une section '## [$VERSION] - AAAA-MM-JJ' decrivant ce qui est livre."
+    FAIL=1
+  else
+    echo "  OK : section [$VERSION] presente."
+  fi
+
+  if [ "$FAIL" = "1" ]; then
+    echo ""
+    echo "  Ce tag echouerait sur changelog-guard.yml en CI. Corrige puis :"
+    echo "      git tag -f $TAG && git push origin $TAG"
+    echo "  (ou, en connaissance de cause : git push --no-verify)"
+    echo ""
+    exit 1
+  fi
+done
+
+exit 0

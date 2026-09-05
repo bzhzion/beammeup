@@ -1,0 +1,110 @@
+name: Changelog guard
+
+# Pendant CI du hook .githooks/pre-commit : le hook est un pense-bete contournable
+# (git commit --no-verify), celui-ci s'execute au moment du tag, la ou on ne peut pas
+# le sauter. Source de verite : admin/.claude/workflow-changelog-guard.yml.
+#
+# Deux controles volontairement independants du format d'indexation du changelog :
+# le parc melange l'indexation par version (## [1.3.19] - date) et par date
+# (## [2026-08-30] - message), et cette heterogeneite est une decision assumee
+# (voir admin/docs/ci-versions-health.md, section 5). Exiger une section ## [X.Y.Z]
+# obligerait a reindexer huit repos, donc a inventer des versions jamais livrees.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  guard:
+    name: Changelog a jour au tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # historique complet requis pour comparer au tag precedent
+
+      - name: Verifier le changelog
+        run: |
+          set -euo pipefail
+
+          CHANGELOG="CHANGELOG.md"
+          if [ ! -f "$CHANGELOG" ]; then
+            echo "::error::$CHANGELOG est absent (cette casse exactement)."
+            exit 1
+          fi
+
+          # Tag declencheur, ou dernier tag pose si lancement manuel.
+          if [ "${GITHUB_REF_TYPE:-}" = "tag" ]; then
+            TAG="$GITHUB_REF_NAME"
+          else
+            TAG=$(git describe --tags --abbrev=0 --match 'v[0-9]*' 2>/dev/null || echo "")
+            if [ -z "$TAG" ]; then
+              echo "Aucun tag de version dans ce repo, rien a verifier."
+              exit 0
+            fi
+            echo "Lancement manuel : verification sur le dernier tag ($TAG)."
+          fi
+          VERSION="${TAG#v}"
+          echo "Tag verifie : $TAG (version $VERSION)"
+
+          FAIL=0
+
+          # --- 1. La section [Unreleased] doit avoir ete promue ------------------
+          # Au moment de taguer, son contenu accumule devient une section de version
+          # ou de date. La laisser pleine, c'est publier une version dont le journal
+          # est encore range sous "non publie" (cas reel : hae-api v1.3.18).
+          UNRELEASED=$(awk '/^## \[Unreleased\]/{f=1;next} /^## /{f=0} f' "$CHANGELOG" \
+                       | grep -vE '^[[:space:]]*$' | grep -vE '^###' || true)
+          if [ -n "$UNRELEASED" ]; then
+            echo "::error::La section [Unreleased] n'est pas vide alors que $TAG vient d'etre pose."
+            echo "Renomme-la en numero de version (ou en date, selon la convention de ce repo),"
+            echo "puis laisse un [Unreleased] vide au-dessus. Contenu encore present :"
+            echo "$UNRELEASED" | sed 's/^/    /'
+            FAIL=1
+          else
+            echo "OK : [Unreleased] est vide."
+          fi
+
+          # --- 2. Du code modifie implique un changelog modifie ------------------
+          # C'est le controle que le hook ne peut pas garantir : --no-verify le saute
+          # commit par commit, mais l'ecart finit par apparaitre ici. Meme filtre que
+          # le hook : CI, doc, .md de racine et hooks ne comptent pas comme du code.
+          PREV=$(git describe --tags --abbrev=0 --match 'v[0-9]*' "$TAG^" 2>/dev/null || echo "")
+          if [ -z "$PREV" ]; then
+            echo "Pas de tag anterieur : controle de diff ignore (premier tag du repo)."
+          else
+            CODE=$(git diff --name-only "$PREV" "$TAG" \
+                   | grep -vE '^(\.github/|\.githooks/|docs/|[^/]*\.md$|\.gitignore$|LICENSE$)' || true)
+            TOUCHED=$(git diff --name-only "$PREV" "$TAG" -- "$CHANGELOG" || true)
+            if [ -n "$CODE" ] && [ -z "$TOUCHED" ]; then
+              echo "::error::Du code a change entre $PREV et $TAG sans que $CHANGELOG soit touche."
+              echo "Fichiers de code concernes :"
+              echo "$CODE" | sed 's/^/    /'
+              FAIL=1
+            else
+              echo "OK : coherence code / changelog depuis $PREV."
+            fi
+          fi
+
+          # --- 3. La version taguee doit avoir sa section ------------------------
+          # Bloquant, y compris sur les repos dont l'historique est indexe par date :
+          # c'est la bascule en avant decidee le 2026-08-30. L'historique date reste
+          # tel quel (le reindexer inventerait des versions jamais publiees, quatre
+          # repos n'ayant qu'un seul tag pour plus de cinquante entrees datees), mais
+          # toute entree NOUVELLE est rangee sous son numero de version.
+          if ! grep -qF "## [$VERSION]" "$CHANGELOG"; then
+            echo "::error::Aucune section '## [$VERSION]' dans $CHANGELOG pour le tag $TAG."
+            echo "Attendu : une section '## [$VERSION] - AAAA-MM-JJ' decrivant ce qui est livre."
+            echo "Si l'historique de ce repo est encore indexe par date, il reste tel quel :"
+            echo "seules les nouvelles entrees passent au format version."
+            FAIL=1
+          else
+            echo "OK : section [$VERSION] presente."
+          fi
+
+          exit "$FAIL"

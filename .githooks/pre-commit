@@ -1,0 +1,33 @@
+#!/bin/sh
+# Rappel : une modification de code s'accompagne d'une entree dans CHANGELOG.md, sous
+# la section "## [Unreleased]" - renommee en numero de version au moment du tag.
+#
+# Volontairement souple : un commit qui ne touche que la CI, la doc ou les hooks passe
+# sans rien reclamer. Trop de blocages produisent des entrees vides ecrites juste pour
+# passer le hook, ce qui vide le changelog de son interet.
+#
+# Ce hook n'est qu'un pense-bete : `git commit --no-verify` le saute, et il n'existe pas
+# dans un clone qui n'a pas configure core.hooksPath. La vraie garantie est en CI, au
+# moment du tag (.github/workflows/changelog-guard.yml), la ou on ne peut pas la contourner.
+
+STAGED=$(git diff --cached --name-only)
+[ -z "$STAGED" ] && exit 0
+
+# Changelog deja stage : rien a signaler.
+echo "$STAGED" | grep -q "^CHANGELOG\.md$" && exit 0
+
+# Ne reste-t-il que des fichiers hors code applicatif ?
+CODE=$(echo "$STAGED" | grep -vE '^(\.github/|\.githooks/|docs/|[^/]*\.md$|\.gitignore$|LICENSE$)')
+[ -z "$CODE" ] && exit 0
+
+echo ""
+echo "  CHANGELOG.md n'est pas dans les fichiers stages."
+echo "  Ajoute une ligne sous \"## [Unreleased]\" decrivant ce changement, puis :"
+echo "      git add CHANGELOG.md"
+echo ""
+echo "  Fichiers de code concernes :"
+echo "$CODE" | sed 's/^/      /'
+echo ""
+echo "  (commit de depannage, en connaissance de cause : git commit --no-verify)"
+echo ""
+exit 1
