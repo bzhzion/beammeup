@@ -12,6 +12,15 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ## [Unreleased]
 
+### Modifié
+
+- Le fichier de licence s'appelle désormais `LICENSE.md`, aligné sur les autres dépôts
+  publics du parc et sur le `BZ-1.1.md` canonique dont il est la copie. Le texte est du
+  Markdown, donc un nom sans extension le faisait servir par GitHub en texte préformaté,
+  avec les `#` et les `**` visibles. Le nom ne change rien à la détection de licence :
+  GitHub annonce « Other » dans les deux cas, BZ-1.1 n'étant pas répertoriée par SPDX.
+
+
 ### Ajouté
 
 - **Convention changelog du parc posée sur ce dépôt** : ce fichier, les hooks `pre-commit` et

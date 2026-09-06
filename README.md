@@ -5,7 +5,7 @@
 
   **One terminal window, shared in real time between a human and an AI agent.**
 
-  [![License: BZ-1.1](https://img.shields.io/badge/license-BZ--1.1-8a2be2)](LICENSE)
+  [![License: BZ-1.1](https://img.shields.io/badge/license-BZ--1.1-8a2be2)](LICENSE.md)
   ![Platforms: Windows and Linux](https://img.shields.io/badge/platforms-Windows%20%7C%20Linux-0078D6)
 </div>
 
@@ -463,6 +463,6 @@ exactly the same process: whatever one types, the other sees.
 
 ## License
 
-[BZ-1.1](LICENSE): BREIZHZION Personal Use License. Personal use only; manufacturing or commercial
+[BZ-1.1](LICENSE.md): BREIZHZION Personal Use License. Personal use only; manufacturing or commercial
 use for a third party is prohibited without a written commercial license. See the full text in
-[`LICENSE`](LICENSE).
+[`LICENSE.md`](LICENSE.md).
