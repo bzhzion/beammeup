@@ -1,22 +1,35 @@
 name: Publier sur le depot APT
 
-# Volontairement decouple du build (release-linux.yml) : declenchement manuel uniquement, jamais
-# automatique. Meme raison que publish-winget.yml, avec un argument de securite en plus, ce
-# workflow etant le seul a toucher une machine de production (axolotl) depuis un depot public :
-# moins il se declenche tout seul, mieux c'est.
+# Workflow SEPARE du build, mais declenche a sa suite.
 #
-# Pas de variable d'opt-in enchainee : ce mecanisme (vars.AUTO_PUBLISH_* + reinitialisation a
-# false en fin de job) a ete abandonne dans l'ecosysteme parce que la reinitialisation reposait sur
-# un token qui repondait 401 sans faire echouer l'etape, laissant la variable bloquee a `true`.
-# Voir appermittent/publish-ios.yml.
+# La separation est gardee volontairement : fichier distinct, droits distincts, et surtout une
+# cle SSH dediee qui n'a rien a voir avec les autres secrets du build. Ce qui a change le
+# 2026-09-07, c'est le declenchement.
 #
-# La cle SSH utilisee (`AXOLOTL_APT_KEY`) est **dediee et restreinte cote serveur** : une commande
-# forcee dans `authorized_keys` la limite a publier un paquet nomme `beammeup`, sans shell ni
-# lecture de fichiers. C'est ce qui rend acceptable la presence d'une cle vers une machine de
-# production dans les secrets d'un depot public. Ne jamais la remplacer par une cle d'acces
-# general.
+# ⚠️ Il etait « manuel uniquement », pour une raison de securite reelle (seul workflow touchant
+# une machine de production depuis un depot public), et la consequence etait que **le depot apt
+# derivait en silence** : ce paquet y est reste en 0.1.0 pendant que ses releases passaient a
+# 1.0.1 puis 1.0.2. C'est le meme motif que winget, l'unique etape manuelle d'une chaine
+# automatisee est celle qui ne se fait pas. Et le declenchement manuel ne protegeait pas de
+# grand-chose : pousser un tag et lancer un workflow demandent le meme droit d'ecriture, donc il
+# evitait les lancements accidentels et pas les malveillants. La vraie protection est ailleurs,
+# dans la cle restreinte ci-dessous.
+#
+# La cle SSH (`AXOLOTL_APT_KEY`) est **dediee et restreinte cote serveur** : une commande forcee
+# dans `authorized_keys` la limite a publier un paquet nomme `beammeup`, sans shell ni lecture de
+# fichiers. C'est ce qui rend acceptable la presence d'une cle vers une machine de production dans
+# les secrets d'un depot public. **Ne jamais la remplacer par une cle d'acces general.**
+#
+# ⚠️ Piege de `workflow_run` : il ne se declenche que si ce fichier est sur la branche par
+# defaut, et son contexte est celui de cette branche et non du tag. La version se lit donc dans
+# `head_branch` de l'evenement, pas dans `github.ref`.
 
 on:
+  # Declenche a la suite du build qui produit le .deb.
+  workflow_run:
+    workflows: ["Release Linux (Tauri)"]
+    types: [completed]
+  # Conserve pour rejouer une version precise a la main.
   workflow_dispatch:
     inputs:
       version:
@@ -31,14 +44,33 @@ jobs:
   apt:
     name: Publier le .deb sur apt.breizhzion.com
     runs-on: ubuntu-latest
+    # Un build en echec ne doit rien publier, et un build de branche n'a pas de release a
+    # laquelle se raccrocher. Les deux conditions sont necessaires : `conclusion` seul
+    # laisserait passer un push de branche, `head_branch` seul laisserait passer un echec.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       startsWith(github.event.workflow_run.head_branch, 'v'))
     timeout-minutes: 10
 
     steps:
+      - name: Determiner la version
+        id: v
+        env:
+          SAISIE: ${{ inputs.version }}
+          BRANCHE: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          set -euo pipefail
+          if [ -n "${SAISIE:-}" ]; then V="$SAISIE"; else V="${BRANCHE#v}"; fi
+          if [ -z "$V" ]; then echo "::error::version indeterminable"; exit 1; fi
+          echo "Version: $V"
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+
       - name: Recuperer le .deb de la release
         id: deb
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ steps.v.outputs.version }}
         run: |
           TAG="v$VERSION"
           echo "Tag: $TAG"

@@ -14,6 +14,26 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ### Modifié
 
+- **`publish-apt.yml` est désormais déclenché à la suite du build** (`workflow_run`), tout en
+  restant un workflow **séparé** : fichier distinct, droits distincts, et surtout une clé SSH
+  dédiée qui n'a rien à voir avec les autres secrets du build.
+  - ⚠️ Il était « manuel uniquement », et la conséquence était que **le dépôt apt dérivait en
+    silence** : ce paquet y est resté en **0.1.0** pendant que ses releases passaient à 1.0.1
+    puis 1.0.2, sans que rien ne le signale. C'est le même motif que winget — **l'unique
+    étape manuelle d'une chaîne automatisée est celle qui ne se fait pas.**
+  - Le déclenchement manuel ne protégeait d'ailleurs pas de grand-chose : pousser un tag et
+    lancer un workflow demandent le **même** droit d'écriture, donc il évitait les
+    lancements accidentels et pas les malveillants. La vraie protection reste la clé
+    restreinte côté serveur par sa commande forcée, inchangée.
+  - Deux garde-fous nécessaires ensemble : `conclusion == 'success'` pour qu'un build en
+    échec ne publie rien, et `startsWith(head_branch, 'v')` pour qu'un push de branche ne
+    déclenche rien. L'un sans l'autre laisse passer un cas.
+  - ⚠️ Piège de `workflow_run` : il ne se déclenche que si le fichier est sur la branche par
+    défaut, et son contexte est celui de cette branche **et non du tag**. La version se lit
+    donc dans `head_branch` de l'événement, pas dans `github.ref`.
+
+### Modifié
+
 - Le manifeste `latest.json` déclare désormais **`linux_apt`**, qui renvoie vers
   `apt.breizhzion.com`. Le dépôt apt fait autorité et versionne lui-même dans son pool, son
   index `Packages` épinglant déjà les SHA256 : une copie versionnée sur R2 serait une
