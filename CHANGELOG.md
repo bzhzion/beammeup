@@ -13,6 +13,25 @@ L'historique git reste la source de vérité pour ce qui précède.
 ## [Unreleased]
 
 ### Ajouté
+- **Publication sur `dl.breizhzion.com`** : l'installateur Windows part désormais aussi sur
+  le bucket R2 partagé `breizhzion-releases`, sous le préfixe de l'appli, en **nom fixe et
+  en copie versionnée immuable**, accompagné d'un `latest.json`.
+  - Les trois formes d'URL ne servent pas à la même chose : le nom fixe pour les boutons de
+    site et les `curl`, la copie versionnée pour les gestionnaires de paquets qui épinglent
+    un SHA256 par version, le `latest.json` pour qu'un site affiche la version courante sans
+    redéploiement. Confondre les deux premières est ce qui casse un manifest winget déjà
+    accepté, et c'est arrivé pour de vrai (`microsoft/winget-pkgs#399072`).
+  - ⚠️ Via l'**API S3** et non `wrangler r2 object`, et ce n'est pas une préférence : les
+    permissions R2 **par bucket** ne valent que pour l'API S3, l'API Cloudflare exigeant une
+    permission à l'échelle du compte. Ce dépôt étant **public**, un jeton capable d'écrire
+    dans les photos de production ou les sauvegardes Portainer n'y a pas sa place. Le jeton
+    employé est restreint au seul bucket des releases, et ce refus a été **prouvé** avant
+    qu'il soit distribué.
+  - Le lire-modifier-écrire de `latest.json` est protégé par le `concurrency` posé juste
+    avant, sans lequel une version plus ancienne finissant en dernier écraserait la nouvelle.
+
+
+### Ajouté
 - **`concurrency` posé sur les workflows de release**, `cancel-in-progress: false`.
   - **Préventif, et le commentaire le dit** : aujourd'hui chaque exécution publie sur le tag
     de sa propre version, donc une ancienne qui finirait en dernier n'écrase rien. Le

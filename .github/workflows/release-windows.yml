@@ -118,3 +118,76 @@ jobs:
           files: |
             app/src-tauri/target/release/bundle/msi/*.msi
             app/src-tauri/target/release/bundle/nsis/*.exe
+
+      # ── Publie sur dl.breizhzion.com (bucket R2 partage breizhzion-releases) ────
+      # Domaine de telechargement commun a toutes les applis du parc sauf justmakeq, qui
+      # garde le sien. Trois formes d'URL qui ne servent pas a la meme chose :
+      #   - le NOM FIXE, ecrase a chaque release : les boutons de site et les curl ;
+      #   - la COPIE VERSIONNEE immuable : les gestionnaires de paquets, qui epinglent un
+      #     SHA256 par version. Un nom fixe ecrase invalide l'empreinte d'un manifest
+      #     winget deja accepte (arrive pour de vrai, microsoft/winget-pkgs#399072) ;
+      #   - LATEST.JSON : ce qu'un site lit pour afficher la version sans redeploiement.
+      #
+      # Via l'API S3 et non `wrangler r2 object`, et ce n'est pas une preference : les
+      # permissions R2 par bucket ne valent QUE pour l'API S3, l'API Cloudflare exigeant
+      # une permission a l'echelle du compte. Ce depot etant PUBLIC, un jeton capable
+      # d'ecrire dans fourbi-photos ou les sauvegardes Portainer n'y a pas sa place. Le
+      # jeton employe ici est refuse sur tout autre bucket, verifie avant d'etre distribue.
+      - name: Publier l'installateur sur dl.breizhzion.com
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          VERSION: ${{ steps.version.outputs.version }}
+          COMPTE: ${{ secrets.R2_ACCOUNT_ID }}
+        shell: pwsh
+        run: |
+          $r2 = "https://$($env:COMPTE).r2.cloudflarestorage.com"
+          $src = Get-ChildItem "app/src-tauri/target/release/bundle/nsis/*.exe" | Select-Object -First 1
+          Copy-Item $src.FullName "BeamMeUp-Setup-x64.exe"
+          foreach ($cle in @("BeamMeUp-Setup-x64.exe", "BeamMeUp-Setup-x64-$($env:VERSION).exe")) {
+            aws s3 cp "BeamMeUp-Setup-x64.exe" "s3://breizhzion-releases/beammeup/$cle" `
+              --endpoint-url $r2 --content-type application/octet-stream
+            if ($LASTEXITCODE -ne 0) { throw "envoi de $cle en echec" }
+          }
+          # Lire-modifier-ecrire du manifeste, protege par le `concurrency` de ce workflow :
+          # sans lui, une version plus ancienne finissant en dernier ecraserait la nouvelle.
+          aws s3 cp "s3://breizhzion-releases/beammeup/latest.json" _ancien.json --endpoint-url $r2 2>$null
+          if ($LASTEXITCODE -ne 0) { "{}" | Set-Content _ancien.json }
+
+      - name: Construire latest.json
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: python
+        run: |
+          import json, os
+          base = "https://dl.breizhzion.com/beammeup"
+          version = os.environ["VERSION"]
+          try:
+              with open("_ancien.json") as f:
+                  existant = json.load(f)
+          except Exception:
+              existant = {}
+          fichiers = existant.get("files", {})
+          fichiers["windows_x64"] = {
+              "url": f"{base}/BeamMeUp-Setup-x64.exe",
+              "versioned_url": f"{base}/BeamMeUp-Setup-x64-{version}.exe",
+              "version": version,
+          }
+          data = {"version": version, "tag": f"v{version}", "files": fichiers}
+          with open("latest.json", "w") as f:
+              json.dump(data, f, indent=2)
+          print(json.dumps(data, indent=2))
+
+      - name: Pousser latest.json
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          COMPTE: ${{ secrets.R2_ACCOUNT_ID }}
+        shell: pwsh
+        run: |
+          $r2 = "https://$($env:COMPTE).r2.cloudflarestorage.com"
+          aws s3 cp latest.json "s3://breizhzion-releases/beammeup/latest.json" `
+            --endpoint-url $r2 --content-type application/json
+          if ($LASTEXITCODE -ne 0) { throw "envoi de latest.json en echec" }
