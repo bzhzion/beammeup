@@ -185,6 +185,11 @@ jobs:
               "versioned_url": f"{base}/BeamMeUp-Setup-x64-{version}.exe",
               "version": version,
           }
+          # Le .deb va sur apt.breizhzion.com, qui fait autorite et versionne lui-meme :
+          # le manifeste renvoie vers le depot plutot que vers une copie R2 qui serait une
+          # seconde source de verite. L'AppImage n'a pas d'equivalent apt, donc il est
+          # servi en nom fixe.
+          fichiers["linux_apt"] = {"url": "https://apt.breizhzion.com", "version": version}
           data = {"version": version, "tag": f"v{version}", "files": fichiers}
           with open("latest.json", "w") as f:
               json.dump(data, f, indent=2)

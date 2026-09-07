@@ -12,6 +12,13 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ## [Unreleased]
 
+### Modifié
+
+- Le manifeste `latest.json` déclare désormais **`linux_apt`**, qui renvoie vers
+  `apt.breizhzion.com`. Le dépôt apt fait autorité et versionne lui-même dans son pool, son
+  index `Packages` épinglant déjà les SHA256 : une copie versionnée sur R2 serait une
+  seconde source de vérité pour le même fait.
+
 ### Corrigé
 
 - ⚠️ **L'étape de publication R2 échouait alors que ses envois réussissaient.** À la
