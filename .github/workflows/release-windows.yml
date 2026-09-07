@@ -153,7 +153,18 @@ jobs:
           # Lire-modifier-ecrire du manifeste, protege par le `concurrency` de ce workflow :
           # sans lui, une version plus ancienne finissant en dernier ecraserait la nouvelle.
           aws s3 cp "s3://breizhzion-releases/beammeup/latest.json" _ancien.json --endpoint-url $r2 2>$null
-          if ($LASTEXITCODE -ne 0) { "{}" | Set-Content _ancien.json }
+          if ($LASTEXITCODE -ne 0) {
+            # Premiere release : le manifeste n'existe pas encore, c'est normal.
+            "{}" | Set-Content _ancien.json
+            # ⚠️ Sans cette remise a zero l'etape ECHOUE alors que le cas est traite. Le
+            # wrapper pwsh de GitHub Actions termine par `exit $LASTEXITCODE`, et
+            # `Set-Content` ne remet pas cette variable a zero : le 1 d'aws survit jusqu'a
+            # la fin du script. Les deux envois precedents avaient parfaitement reussi, donc
+            # l'echec se lisait comme un probleme d'envoi alors qu'il venait d'une variable
+            # remanente. La version bash du meme motif (noisecrypt) n'a pas ce defaut : son
+            # `||` remet le code a zero de lui-meme.
+            $global:LASTEXITCODE = 0
+          }
 
       - name: Construire latest.json
         env:

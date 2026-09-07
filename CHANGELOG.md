@@ -12,6 +12,21 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ## [Unreleased]
 
+### Corrigé
+
+- ⚠️ **L'étape de publication R2 échouait alors que ses envois réussissaient.** À la
+  première release le manifeste n'existe pas encore, donc `aws s3 cp` pour le lire échoue,
+  ce qui est normal et traité. Mais **le wrapper pwsh de GitHub Actions termine par
+  `exit $LASTEXITCODE`**, et `Set-Content` ne remet pas cette variable à zéro : le 1 d'`aws`
+  survivait jusqu'à la fin du script.
+  - Le symptôme trompait complètement : les deux envois d'installateur apparaissaient en
+    succès dans le journal, juste avant un `exit code 1`, donc l'échec se lisait comme un
+    problème d'envoi alors qu'il venait d'une variable rémanente.
+  - La version bash du même motif, sur `noisecrypt`, n'a pas ce défaut : son `||` remet le
+    code de retour à zéro de lui-même. **Le même code traduit d'un shell à l'autre n'a pas
+    le même comportement d'erreur**, et c'est le genre d'écart qu'on ne voit qu'à
+    l'exécution.
+
 ## [1.0.2] - 2026-09-07
 
 ### Ajouté
