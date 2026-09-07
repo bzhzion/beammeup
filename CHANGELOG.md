@@ -12,6 +12,8 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-09-07
+
 ### Corrigé
 
 - **La publication apt est appelée par le workflow de release** (`workflow_call`) et non
