@@ -12,6 +12,19 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ## [Unreleased]
 
+### Corrigé
+
+- **La publication apt est appelée par le workflow de release** (`workflow_call`) et non
+  plus déclenchée par un événement. Le fichier reste séparé, avec ses droits et sa clé SSH
+  dédiée.
+  - ⚠️ **`workflow_run` ne tire pas.** Éprouvé sur `hublot` : trois tentatives, **zéro run
+    déclenché**, depuis un tag comme depuis une branche, avec des noms correspondant au
+    caractère près et le fichier bien présent sur la branche par défaut. Cause non établie.
+  - `workflow_call` ne dépend d'aucun événement à observer : l'appelant nomme l'appelé,
+    donc soit le job est dans le run, soit il n'y est pas. Vérifiable d'un coup d'œil.
+  - `needs: build` remplace l'ancien `if`, et ⚠️ `secrets: inherit` est **obligatoire** :
+    un workflow appelé ne reçoit aucun secret sans lui.
+
 ### Modifié
 
 - **`publish-apt.yml` est désormais déclenché à la suite du build** (`workflow_run`), tout en

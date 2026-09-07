@@ -40,6 +40,10 @@ jobs:
     # workflow Windows, ce repo est PUBLIC et un runner self-hosted y exposerait l'infrastructure
     # a un risque d'execution de code non maitrise.
     runs-on: ubuntu-latest
+    # Exposee pour le job d'appel : une valeur calculee dans un job n'est visible
+    # d'un autre que par un output declare.
+    outputs:
+      version: ${{ steps.version.outputs.version }}
 
     steps:
       - uses: actions/checkout@v4
@@ -109,3 +113,13 @@ jobs:
           files: |
             app/src-tauri/target/release/bundle/deb/*.deb
             app/src-tauri/target/release/bundle/appimage/*.AppImage
+
+  # Publication apt appelee explicitement, `workflow_run` ne tirant pas (voir l'en-tete de
+  # publish-apt.yml). `needs: build` fait le garde-fou : un build en echec n'y arrive pas.
+  # `secrets: inherit` est obligatoire, un workflow appele ne recoit aucun secret sans lui.
+  apt:
+    needs: build
+    uses: ./.github/workflows/publish-apt.yml
+    with:
+      version: ${{ needs.build.outputs.version }}
+    secrets: inherit

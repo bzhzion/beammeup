@@ -26,9 +26,17 @@ name: Publier sur le depot APT
 
 on:
   # Declenche a la suite du build qui produit le .deb.
-  workflow_run:
-    workflows: ["Release Linux (Tauri)"]
-    types: [completed]
+  # ⚠️ `workflow_run` a ete essaye et NE TIRE PAS : eprouve sur hublot, trois tentatives
+  # et zero run declenche, depuis un tag comme depuis une branche, avec des noms
+  # correspondant au caractere pres et le fichier bien present sur la branche par defaut.
+  # Cause non etablie. `workflow_call` ne depend d'aucun evenement a observer : l'appelant
+  # nomme l'appele, donc soit le job existe dans le run, soit il n'existe pas.
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version a publier'
+        required: true
+        type: string
   # Conserve pour rejouer une version precise a la main.
   workflow_dispatch:
     inputs:
@@ -47,10 +55,6 @@ jobs:
     # Un build en echec ne doit rien publier, et un build de branche n'a pas de release a
     # laquelle se raccrocher. Les deux conditions sont necessaires : `conclusion` seul
     # laisserait passer un push de branche, `head_branch` seul laisserait passer un echec.
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-       startsWith(github.event.workflow_run.head_branch, 'v'))
     timeout-minutes: 10
 
     steps:
@@ -58,10 +62,9 @@ jobs:
         id: v
         env:
           SAISIE: ${{ inputs.version }}
-          BRANCHE: ${{ github.event.workflow_run.head_branch }}
         run: |
           set -euo pipefail
-          if [ -n "${SAISIE:-}" ]; then V="$SAISIE"; else V="${BRANCHE#v}"; fi
+          V="${SAISIE:-}"
           if [ -z "$V" ]; then echo "::error::version indeterminable"; exit 1; fi
           echo "Version: $V"
           echo "version=$V" >> "$GITHUB_OUTPUT"
