@@ -12,6 +12,19 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ## [Unreleased]
 
+### Ajouté
+- **`concurrency` posé sur les workflows de release**, `cancel-in-progress: false`.
+  - **Préventif, et le commentaire le dit** : aujourd'hui chaque exécution publie sur le tag
+    de sa propre version, donc une ancienne qui finirait en dernier n'écrase rien. Le
+    garde-fou est posé **avant** la chose qu'il protège, à savoir l'alignement en cours qui
+    va ajouter un manifeste et un fichier au nom générique partagés entre versions.
+  - Un premier jet de ce commentaire décrivait la panne comme déjà possible ici. C'était
+    faux, et corrigé avant commit : un commentaire qui décrit une défaillance inexistante
+    finit par se lire comme un état de fait.
+  - Le défaut a bien frappé ailleurs : sur `justmakeq` le 2026-09-06, une version partie
+    34 minutes avant la suivante a fini 14 minutes après elle et l'a écrasée.
+
+
 ### Corrigé
 
 - **`release-windows.yml` aurait créé un tag git nommé `main`** au premier lancement

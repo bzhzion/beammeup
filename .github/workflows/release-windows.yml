@@ -10,6 +10,24 @@ on:
   push:
     tags: ['v*.*.*']
 
+# Serialise les executions de ce workflow au lieu de les laisser se croiser.
+#
+# PREVENTIF ici, et il faut le dire : aujourd'hui chaque execution publie sur le tag de SA
+# version, donc une ancienne qui finirait en dernier n'ecrase rien. Le garde-fou est pose
+# avant la chose qu'il protege, c'est-a-dire l'alignement en cours qui va ajouter un
+# manifeste et un fichier au nom generique partages entre versions.
+#
+# C'est a ce moment-la que le defaut devient reel, et il a deja frappe ailleurs : sur
+# justmakeq le 2026-09-06, beta.102 partie 34 min avant beta.103 a fini 14 min apres elle,
+# et a republie la version precedente par-dessus la nouvelle. Un lire-modifier-ecrire sans
+# garde fait gagner le dernier qui ecrit, quelle que soit sa version.
+#
+# `cancel-in-progress: false` est le point important : annuler mettrait fin a une release en
+# cours de publication. Mettre en file conserve l'ordre des tags.
+concurrency:
+  group: release-windows
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
