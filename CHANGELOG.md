@@ -12,6 +12,8 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-09-07
+
 ### Ajouté
 - **Publication sur `dl.breizhzion.com`** : l'installateur Windows part désormais aussi sur
   le bucket R2 partagé `breizhzion-releases`, sous le préfixe de l'appli, en **nom fixe et
