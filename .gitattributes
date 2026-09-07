@@ -1,0 +1,43 @@
+# Convention de fins de ligne du parc. Source : admin/.claude/gitattributes-parc
+#
+# COPIER TEL QUEL. Un repo peut AJOUTER ses regles propres en dessous (fichiers binaires,
+# vendor), mais pas retirer celles-ci.
+#
+# ─────────────────────────────────────────────────────────────────────────────────────────────
+# Pourquoi ce fichier existe
+# ─────────────────────────────────────────────────────────────────────────────────────────────
+# Le bloc "run:" d'un workflow GitHub Actions est un script shell execute sur un runner Linux.
+# Un antislash de continuation de ligne suivi d'un retour chariot ne continue PAS la ligne : le
+# retour chariot la termine, et la commande est coupee en deux.
+#
+# Cas reel du 2026-09-07 sur bzhzion/cabanon : un outil a reecrit deploy-api.yml en preservant
+# ses fins de ligne, sur une machine Windows ou core.autocrlf est actif. Le fichier est parti en
+# CRLF dans le depot, et le deploiement de l'API a echoue sur un "usage: ssh" — la destination
+# de la commande avait disparu avec la continuation. Le message d'erreur ne parle jamais de fins
+# de ligne, ce qui rend le diagnostic long : il faut penser a comparer le fichier a ce qu'il
+# etait avant.
+#
+# C'est donc un piege de PARC et pas d'un repo : toute machine Windows avec core.autocrlf=true
+# le reproduira sur n'importe quel .yml qu'un script reecrit.
+#
+# ─────────────────────────────────────────────────────────────────────────────────────────────
+# Ce que font ces trois blocs
+# ─────────────────────────────────────────────────────────────────────────────────────────────
+# 1. `* text=auto` : git normalise en LF dans le DEPOT et restitue selon la plateforme au
+#    checkout. C'est le filet general, il ne suffit pas seul pour les scripts (voir 2).
+* text=auto
+
+# 2. Force LF jusque dans la copie de travail pour tout ce qu'une machine Linux EXECUTE. Sans
+#    `eol=lf` explicite, ces fichiers arrivent en CRLF sur Windows et tout outil qui les reecrit
+#    en preservant leurs fins de ligne les recommite en CRLF.
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+Dockerfile text eol=lf
+*.bash text eol=lf
+
+# 3. A l'inverse, ce qu'une machine Windows execute veut du CRLF. Les mettre en LF casse
+#    certains interpreteurs, notamment cmd.exe sur un .bat multi-lignes.
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
