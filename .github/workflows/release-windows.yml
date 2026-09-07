@@ -74,7 +74,25 @@ jobs:
       - name: GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
+          # `github.ref_name` etait faux ici, et faux d'une facon qui ne se voit pas.
+          #
+          # Sur un push de tag il vaut le tag, donc tout marche. Sur un
+          # `workflow_dispatch` depuis la branche par defaut il vaut « main », et
+          # `action-gh-release` CREE alors un tag git nomme « main » et y attache la
+          # release. Ce n'est pas theorique : c'est arrive sur hublot, qui porte un tag
+          # `main` a cote de `v0.1.0` avec sa release courante posee dessus, d'ou une URL
+          # d'installateur `/download/main/...` que winget refuse puisqu'elle n'est pas
+          # immuable par version. Ici le bug etait encore latent, uniquement parce que ce
+          # workflow n'avait jamais ete lance a la main.
+          #
+          # Le piege est double : il ne tire que sur le chemin manuel, qui existe
+          # precisement pour rejouer une release, donc il frappe quand on est deja en train
+          # de reparer quelque chose.
+          #
+          # La bonne reponse etait deja dans ce depot : `release-linux.yml` reconstruit le
+          # tag depuis la version. Aligne dessus plutot que d'introduire une troisieme
+          # facon de nommer un tag.
+          tag_name: v${{ steps.version.outputs.version }}
           name: BeamMeUp ${{ steps.version.outputs.version }}
           draft: false
           prerelease: false

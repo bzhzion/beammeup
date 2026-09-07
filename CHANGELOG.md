@@ -14,6 +14,22 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ### Corrigé
 
+- **`release-windows.yml` aurait créé un tag git nommé `main`** au premier lancement
+  manuel. Il passait `tag_name: ${{ github.ref_name }}` à `action-gh-release`, ce qui vaut
+  le tag sur un push de tag mais vaut **`main`** sur un `workflow_dispatch` depuis la
+  branche par défaut, et l'action crée alors ce tag pour y attacher la release.
+  - **Bug latent et non dormant** : il n'avait jamais tiré ici uniquement parce que ce
+    workflow n'a jamais été lancé à la main. Le même code a déjà frappé sur `hublot`, qui
+    porte un tag `main` à côté de `v0.1.0`, avec sa release courante posée dessus et donc
+    une URL d'installateur `/download/main/...` que winget refuse.
+  - Le piège est double : il ne tire **que** sur le chemin manuel, qui existe précisément
+    pour rejouer une release. Il frappe donc au moment où on répare déjà autre chose, et il
+    passe pour une conséquence de la panne en cours.
+  - **La bonne réponse était déjà dans ce dépôt** : `release-linux.yml` reconstruit le tag
+    depuis la version. Aligné dessus plutôt que d'introduire une troisième façon de nommer
+    un tag. Deux workflows du même dépôt qui ne s'accordent pas là-dessus, c'est le signe
+    qu'un des deux a été écrit sans regarder l'autre.
+
 - **Convention de fins de ligne du parc posée dans `.gitattributes`.** Le bloc `run:` d'un
   workflow GitHub Actions est un script shell exécuté sur un runner Linux : un antislash de
   continuation suivi d'un retour chariot **ne continue pas** la ligne, la commande est coupée en
