@@ -12,6 +12,8 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ## [Unreleased]
 
+## [1.0.4] - 2026-09-18
+
 ### Corrige
 - **Plus aucune commande ne ramene la fenetre au premier plan.** Chaque requete recue sur
   le canal de controle appelait `show()` **puis** `set_focus()` : la fenetre sautait
