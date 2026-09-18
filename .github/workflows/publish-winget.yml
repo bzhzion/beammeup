@@ -61,17 +61,27 @@ jobs:
           INSTALLER_URL: https://github.com/${{ github.repository }}/releases/download/${{ steps.release.outputs.tag }}/${{ steps.release.outputs.asset }}
         shell: pwsh
         run: |
-          # Le fork personnel prend du retard sur microsoft/winget-pkgs (depot a tres fort trafic),
-          # et wingetcreate echoue alors avec "Le depot fourchu n'a pas pu etre synchronise".
-          # Resynchronisation prealable, non bloquante.
+          # Le fork personnel prend du retard sur microsoft/winget-pkgs, depot a tres fort
+          # trafic, et wingetcreate echoue alors en affirmant que le fork n'a pas pu etre
+          # synchronise. Resynchronisation prealable.
+          #
+          # BLOQUANT depuis le 2026-09-18, et c'est tout l'interet du changement. En simple
+          # avertissement, l'etape enchainait sur un `wingetcreate update` deja condamne,
+          # qui echouait une minute plus tard sur un message ne nommant pas la cause : on
+          # allait donc chercher la panne du cote du paquet ou du jeton. Un echec ici a une
+          # cause probable unique, le fork a diverge de l'amont, et il se repare a la main.
+          # Le retenter ne sert a rien.
           try {
-            Invoke-RestMethod -Method Post `
+            $sync = Invoke-RestMethod -Method Post `
               -Uri "https://api.github.com/repos/painteau/winget-pkgs/merge-upstream" `
               -Headers @{ Authorization = "Bearer $env:WINGET_PAT"; Accept = "application/vnd.github+json" } `
               -Body (@{ branch = "master" } | ConvertTo-Json) `
               -ContentType "application/json"
+            Write-Host "fork winget-pkgs synchronise : $($sync.message)"
           } catch {
-            Write-Warning "Sync du fork winget-pkgs echoue (non bloquant) : $_"
+            $code = $_.Exception.Response.StatusCode.value__
+            Write-Host "::error title=Fork winget-pkgs non synchronise::HTTP $code. Le fork painteau/winget-pkgs ne peut pas etre avance sur master, donc wingetcreate travaillerait sur une base perimee. Cause la plus frequente : le fork a diverge de microsoft/winget-pkgs et doit etre remis a plat a la main, ou supprime et refourche. Detail : $_"
+            exit 1
           }
 
           Invoke-WebRequest -Uri "https://aka.ms/wingetcreate/latest" -OutFile "wingetcreate.exe"

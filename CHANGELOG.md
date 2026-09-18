@@ -12,6 +12,14 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ## [Unreleased]
 
+### Corrige
+- La **synchronisation du fork `winget-pkgs`** devient **bloquante**. En simple
+  avertissement, l'etape enchainait sur un `wingetcreate update` deja condamne, qui
+  echouait une minute plus tard sur un message ne nommant pas la cause : on allait
+  chercher la panne du cote du paquet ou du jeton. Un echec ici a une cause probable
+  unique, le fork a diverge de l'amont, et il se repare a la main. Le message d'erreur
+  la nomme et donne la reparation. Chemin d'echec verifie contre l'API reelle.
+
 ## [1.0.3] - 2026-09-07
 
 ### Corrigé
