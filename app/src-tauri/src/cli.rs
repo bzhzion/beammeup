@@ -411,7 +411,7 @@ pub fn run(cli: Cli) -> i32 {
             Command::Screenshot { out } => {
                 // Make sure the window is running (relaunch if needed, like any other command:
                 // there is no headless mode) before attempting to capture it.
-                if let Err(e) = ipc::send_request(&Request::Status).await {
+                if let Err(e) = ipc::send_request(&Request::Status { focus: false }).await {
                     eprintln!("beammeup: {e}");
                     return 1;
                 }
@@ -525,7 +525,7 @@ pub fn run(cli: Cli) -> i32 {
                     }
                 };
             }
-            Command::Status => Request::Status,
+            Command::Status => Request::Status { focus: false },
             Command::List => Request::List,
             Command::Shells => Request::ListShells,
             Command::Quit => Request::Quit,

@@ -36,9 +36,10 @@ const CONNECT_RETRY_STEP: Duration = Duration::from_millis(200);
 /// new action (show/focus, quit, fullscreen, and whatever comes next).
 #[derive(Clone)]
 pub struct WindowControls {
-    /// Called for EVERY received command (except `Quit`), before it's even executed, so the
-    /// window consistently comes to the foreground (the "never headless mode" rule).
-    pub show_and_focus: Arc<dyn Fn() + Send + Sync>,
+    /// Makes the window visible, and steals the foreground focus only if the argument is `true`.
+    /// See `steals_focus` below for which requests get `true`: the "never headless mode" rule is
+    /// about being VISIBLE, not about being in front of the human's current work.
+    pub show_window: Arc<dyn Fn(bool) + Send + Sync>,
     /// Called once the response to `Request::Quit` has been sent: the only clean way to close
     /// BeamMeUp from the outside, since an elevated process can't be killed by a non-elevated
     /// `taskkill`/`Stop-Process` (`Access is denied`, observed in testing).
@@ -138,9 +139,9 @@ async fn try_connect_and_send(req: &Request) -> Result<Response, io::Error> {
 }
 
 /// Must be called first, before building anything on the window side. Returns `true`
-/// if an existing instance responded (and has therefore already been brought to the foreground by
-/// `show_and_focus`, as for any other request): in that case the current process must
-/// stop immediately instead of building its own independent window.
+/// if an existing instance responded (and has therefore been brought to the foreground, this being
+/// one of the two human gestures allowed to do so, see `steals_focus`): in that case the current
+/// process must stop immediately instead of building its own independent window.
 ///
 /// **Why this guard.** Before it was added (2026-08-25), `ipc::serve` silently failed
 /// to create the pipe if an instance was already running, and the function returned without ever
@@ -162,7 +163,7 @@ pub fn another_instance_is_running_and_focused() -> bool {
             if tentative > 0 {
                 tokio::time::sleep(Duration::from_millis(300)).await;
             }
-            if tokio::time::timeout(Duration::from_secs(2), try_connect_and_send(&Request::Status))
+            if tokio::time::timeout(Duration::from_secs(2), try_connect_and_send(&Request::Status { focus: true }))
                 .await
                 .map(|r| r.is_ok())
                 .unwrap_or(false)
@@ -187,6 +188,23 @@ fn is_not_running(e: &io::Error) -> bool {
     matches!(e.kind(), io::ErrorKind::NotFound | io::ErrorKind::ConnectionRefused)
 }
 
+/// Which requests are allowed to pull the window in front of whatever the human is doing.
+///
+/// Answer: **only a human gesture**, i.e. relaunching the executable by hand while an instance is
+/// already running (`Status { focus: true }`, see `another_instance_is_running_and_focused`). No
+/// agent-driven command qualifies, `select` included: the human is doing something else on the
+/// machine while agents work, and being yanked out of it is worse than any benefit of being shown
+/// a tab immediately. `select` still does its real job, which is to leave the right tab already
+/// selected in the UI for when the human comes back to the window on their own.
+///
+/// Every other command still makes the window VISIBLE (see `show_window`), so the "never headless
+/// mode" rule holds: nothing is ever done off-screen. Before 2026-09-18 every single command
+/// called `set_focus()` too, so an agent running a series of `send`/`exec` stole the desktop back
+/// on each one.
+fn steals_focus(req: &Request) -> bool {
+    matches!(req, Request::Status { focus: true })
+}
+
 async fn handle_connection<S>(stream: S, manager: Arc<SessionManager>, controls: WindowControls)
 where
     S: tokio::io::AsyncRead + tokio::io::AsyncWrite,
@@ -203,7 +221,7 @@ where
 
     let is_quit = matches!(req, Request::Quit);
     if !is_quit {
-        (controls.show_and_focus)();
+        (controls.show_window)(steals_focus(&req));
     }
 
     // `Exec` can block for several seconds (waiting for a command to finish): `spawn_blocking`
@@ -250,7 +268,7 @@ where
 
 fn dispatch(manager: &Arc<SessionManager>, req: Request, controls: &WindowControls) -> Response {
     match req {
-        Request::Status => Response::Status {
+        Request::Status { .. } => Response::Status {
             window_visible: true,
             session_count: manager.count(),
         },

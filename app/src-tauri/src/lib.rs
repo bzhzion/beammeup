@@ -104,7 +104,8 @@ pub fn run() {
             // indefinitely. The process stayed alive and fully functional after responding "ok",
             // never detected because a full launch/close cycle had never been tested until then.
             // Any command that comes afterwards (`open`/`send`/`select`...) already calls
-            // `show_and_focus`, so the window reappears normally after being hidden. Accepted
+            // `show_window`, so the window reappears normally after being hidden (visible, but
+            // without stealing the foreground, see `steals_focus` in `ipc.rs`). Accepted
             // trade-off: the application can run with no visible window between an accidental close
             // and the next command. Not a real headless mode (no action is ever taken while the
             // window is hidden, only already-open sessions keep living in the background), but this
@@ -145,11 +146,22 @@ pub fn run() {
                 let _ = selected_handle.emit("select-tab", id);
             }));
 
+            // `steal_focus: false` is the normal case: the window is made visible (the "never
+            // headless" rule holds, nothing is ever done off-screen) WITHOUT being pulled in front
+            // of whatever the human is doing. Until 2026-09-18 every command called `set_focus()`
+            // too, which made the window jump over the human's current work on each `send`/`exec`,
+            // i.e. constantly while an agent worked. Reported symptom: a MINIMIZED window was fine
+            // (`show()` alone does not restore it), a window merely in the BACKGROUND was yanked to
+            // the foreground, pulling the human out of whatever else they were doing on the machine.
+            // `true` is now reserved for human gestures only: the notification-area icon, and
+            // relaunching the executable by hand (see `steals_focus` in `ipc.rs`).
             let focus_handle = app_handle.clone();
-            let show_and_focus = Arc::new(move || {
+            let show_window = Arc::new(move |steal_focus: bool| {
                 if let Some(window) = focus_handle.get_webview_window("main") {
                     let _ = window.show();
-                    let _ = window.set_focus();
+                    if steal_focus {
+                        let _ = window.set_focus();
+                    }
                 }
             });
 
@@ -175,8 +187,8 @@ pub fn run() {
             // the application is still running once the window is hidden (see the comment on
             // `on_window_event` above). Without it, nothing distinguishes "closed for good" from
             // "hidden in the background" to the eye; only `beammeup status` revealed it until now.
-            let tray_show_menu = show_and_focus.clone();
-            let tray_show_click = show_and_focus.clone();
+            let tray_show_menu = show_window.clone();
+            let tray_show_click = show_window.clone();
             let tray_quit = quit.clone();
             let tray_manager = manager.clone();
             let show_item =
@@ -199,7 +211,7 @@ pub fn run() {
                 .show_menu_on_left_click(false)
                 .on_menu_event(move |_app, event| match event.id.as_ref() {
                     "quit" => tray_quit(),
-                    "show" => tray_show_menu(),
+                    "show" => tray_show_menu(true),
                     // Does not bring the window back up: this is precisely meant to let sessions be
                     // cleared without having to show the window, straight from the notification area.
                     "close-all" => {
@@ -214,13 +226,13 @@ pub fn run() {
                         ..
                     } = event
                     {
-                        tray_show_click();
+                        tray_show_click(true);
                     }
                 })
                 .build(app)?;
 
             let controls = ipc::WindowControls {
-                show_and_focus,
+                show_window,
                 quit,
                 set_fullscreen,
                 remote_web: remote_web_handle.clone(),

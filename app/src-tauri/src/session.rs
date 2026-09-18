@@ -167,9 +167,10 @@ impl SessionManager {
         *self.emit_selected.lock().unwrap() = Some(emit);
     }
 
-    /// Resolves `id_or_label` and brings that tab to the foreground on the UI side. Does nothing
-    /// more: `show_and_focus` (already called for every request received on the pipe) takes care
-    /// of raising the window itself if needed.
+    /// Resolves `id_or_label` and selects that tab on the UI side. Does nothing more, and in
+    /// particular **does not raise the window**: `show_window` (called for every request received
+    /// on the pipe) only makes it visible. Selecting a tab is meant to leave the right one ready
+    /// for when the human comes back to the window, never to pull them out of what they are doing.
     pub fn select(&self, id_or_label: &str) -> Result<(), String> {
         let session = self.get(id_or_label)?;
         if let Some(emit_selected) = self.emit_selected.lock().unwrap().as_ref() {

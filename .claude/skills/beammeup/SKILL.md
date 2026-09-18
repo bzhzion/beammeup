@@ -16,7 +16,8 @@ BeamMeUp is a single executable with two behaviors: run it with no argument and 
 window (interface + session manager); run it with a subcommand and it acts as a connector that
 talks to the already-open window (and relaunches it automatically if needed). **There is no
 headless mode**: every command makes a window appear or reappear on screen, never an action
-invisible to the human.
+invisible to the human. **Visible is not the same as in front**, though: no command takes the
+foreground away from what the human is doing, `select` included (see below).
 
 `beammeup --help` and `beammeup <subcommand> --help` are the exact source of truth, always in
 sync with the binary actually installed (see the end of this skill for how to consult them when
@@ -63,8 +64,11 @@ what, and the pitfalls already encountered.
 
 ## Other useful commands
 
-- `beammeup select <id_or_label>` brings an already-open tab to the foreground without creating a
-  new one, useful when several sessions are running in parallel.
+- `beammeup select <id_or_label>` selects an already-open tab without creating a new one, useful
+  when several sessions are running in parallel. ⚠️ **It does not raise the window and does not
+  interrupt the human**: it leaves the right tab ready for when they come back to the window on
+  their own. There is deliberately no way for an agent to demand attention; if something needs to
+  be seen now, say so in the answer, don't try to grab the screen.
 - `beammeup duplicate <id_or_label>` opens a new tab with the same settings as an existing one.
 - `beammeup reopen` reopens the last closed session (whichever it was), with the same settings.
 - `beammeup remote list|read|write|rename|delete|mkdir <target> <path>` performs file operations

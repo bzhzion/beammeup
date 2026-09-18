@@ -20,7 +20,15 @@ pub fn control_channel_name() -> String {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "cmd", rename_all = "snake_case")]
 pub enum Request {
-    Status,
+    /// `focus: true` is reserved for the human relaunching the executable by hand while an
+    /// instance is already running (see `another_instance_is_running_and_focused`): that
+    /// gesture means "show me the window", so it earns the foreground. The plain `beammeup
+    /// status` sent by an agent leaves it at `false` and never disturbs what the human is
+    /// doing. `#[serde(default)]` keeps an older window able to parse a newer request.
+    Status {
+        #[serde(default)]
+        focus: bool,
+    },
     List,
     /// Lists the interpreters actually detected on THIS machine (PowerShell 5.1/7, cmd, Git Bash,
     /// WSL distributions). Never a fixed list, each machine can have a different set installed in

@@ -13,6 +13,23 @@ L'historique git reste la source de vérité pour ce qui précède.
 ## [Unreleased]
 
 ### Corrige
+- **Plus aucune commande ne ramene la fenetre au premier plan.** Chaque requete recue sur
+  le canal de controle appelait `show()` **puis** `set_focus()` : la fenetre sautait
+  par-dessus le travail en cours de l'humain a chaque `send`/`exec`, donc en permanence
+  pendant qu'un agent travaillait. Symptome rapporte : une fenetre **reduite** ne posait
+  aucun probleme (`show()` seul ne la restaure pas), une fenetre simplement **en
+  arriere-plan** etait arrachee devant, sortant l'humain de ce qu'il faisait. La fenetre
+  est desormais rendue **visible** sans prendre le focus : la regle « jamais de mode
+  invisible » portait sur la visibilite, pas sur le premier plan.
+  - ⚠️ **`select` non plus ne remonte la fenetre**, contrairement a ce que son nom laisse
+    croire. Son vrai travail est de laisser **le bon onglet deja selectionne** pour quand
+    l'humain revient de lui-meme. Un agent qui veut montrer quelque chose ne decide pas du
+    moment ou l'humain regarde.
+  - Deux gestes **humains** gardent le droit de remonter la fenetre : le clic sur l'icone
+    de la zone de notification, et le relancement de l'executable a la main. Ce dernier
+    passe par un champ `focus` ajoute a la requete `status` (`#[serde(default)]`, donc une
+    fenetre plus ancienne sait toujours lire une requete plus recente) : un `beammeup
+    status` lance par un agent le laisse a `false`.
 - La **synchronisation du fork `winget-pkgs`** devient **bloquante**. En simple
   avertissement, l'etape enchainait sur un `wingetcreate update` deja condamne, qui
   echouait une minute plus tard sur un message ne nommant pas la cause : on allait

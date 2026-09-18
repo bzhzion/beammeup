@@ -373,9 +373,13 @@ just the human installing the program. `beammeup --help` and `beammeup <subcomma
 the exact source of truth (always in sync with the installed binary); what follows is context that
 the built-in help can't provide.
 
-- **Never a headless mode.** Every command relaunches the window if needed and always makes it
-  appear visible on screen. This isn't a limitation to work around: it's the guarantee that the
-  human always sees what the agent is doing, in the same window they're using.
+- **Never a headless mode, but never a focus thief either.** Every command relaunches the window
+  if needed and always makes it visible on screen, which is the guarantee that the human can always
+  see what the agent is doing. **Visible is not the same as in front**: no agent-driven command
+  takes the foreground, `select` included. The human keeps working on whatever else they are doing
+  while agents run; they come back to the window when they choose to, and find the right tab already
+  selected. Only two human gestures raise the window: clicking the notification-area icon, and
+  relaunching the executable by hand.
 - **Prefer `exec` over `send` for any command whose result you're waiting on.** `send` returns
   control immediately (useful for interactive typing, answering a prompt); `exec` waits for the
   command to actually finish and returns output plus exit code. Guessing a delay and then rereading
