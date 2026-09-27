@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BeamMeUp · Privacy Policy</title>
+<meta name="description" content="BeamMeUp privacy policy: no telemetry, no data collection. Remote web access transmits terminal content over plain HTTP — read the details." />
+<link rel="icon" type="image/svg+xml" href="assets/logo-trapezoid-transparent.svg" />
+<link rel="preconnect" href="https://cdn.breizhzion.com" crossorigin />
+<link rel="stylesheet" href="https://cdn.breizhzion.com/fonts/Antonio/Antonio.css" />
+<link rel="stylesheet" href="https://cdn.breizhzion.com/fonts/Archivo/Archivo.css" />
+<link rel="stylesheet" href="https://cdn.breizhzion.com/fonts/JetBrainsMono/JetBrainsMono.css" />
+<link rel="stylesheet" href="styles.css" />
+<style>
+  .prose { max-width: 72ch; }
+  .prose h2 { font-family: var(--font-display); color: var(--orange); font-size: 1.15rem; text-transform: uppercase; letter-spacing: .05em; margin: 2.5rem 0 .6rem; }
+  .prose p, .prose li { font-size: .95rem; color: var(--text-dim); line-height: 1.7; }
+  .prose ul { padding-left: 1.4em; }
+  .prose li { margin-bottom: .3rem; }
+  .prose strong { color: var(--text); }
+  .prose code { font-family: var(--font-mono); font-size: .85em; color: var(--periwinkle); background: rgba(166,176,255,.08); padding: .1em .35em; border-radius: 4px; }
+  .prose a { color: var(--periwinkle); }
+  .page-title { font-family: var(--font-display); font-size: clamp(1.6rem, 4vw, 2.4rem); text-transform: uppercase; letter-spacing: .06em; color: var(--text); margin-bottom: .3rem; }
+  .page-subtitle { color: var(--text-dim); font-size: .9rem; margin-bottom: 2.5rem; }
+  .back-link { display: inline-flex; align-items: center; gap: .4em; font-size: .85rem; color: var(--text-faint); text-decoration: none; margin-bottom: 2rem; }
+  .back-link:hover { color: var(--periwinkle); }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#content">Skip to main content</a>
+
+<div class="frame">
+  <aside class="sidebar" aria-label="Main navigation">
+    <div class="sidebar-cap sidebar-cap--top" aria-hidden="true"></div>
+    <div class="sidebar-brand">
+      <img src="assets/logo-trapezoid-transparent.svg" alt="" class="brand-mark" aria-hidden="true" />
+      <span class="brand-code">NCC&#8209;0001</span>
+    </div>
+    <nav class="sidebar-nav" aria-label="Site navigation">
+      <a class="nav-item" href="index.html">Home</a>
+      <a class="nav-item nav-item--active" href="privacy.html">Privacy</a>
+    </nav>
+    <div class="sidebar-cap sidebar-cap--bottom" aria-hidden="true"></div>
+  </aside>
+
+  <main class="content" id="content">
+    <a class="back-link" href="index.html">&#8592; Back to BeamMeUp</a>
+
+    <h1 class="page-title">Privacy Policy</h1>
+    <p class="page-subtitle">Last updated: 2026-09-27 &nbsp;|&nbsp; Applies to all versions of BeamMeUp</p>
+
+    <div class="prose">
+
+      <h2>Summary</h2>
+      <p>BeamMeUp collects <strong>no data</strong> and contacts <strong>no external server</strong> during normal use.
+      The one exception is the optional remote web access feature, which you must explicitly enable; when active,
+      terminal content travels unencrypted over your local network. The details are below.</p>
+
+      <h2>Telemetry and diagnostics</h2>
+      <p>BeamMeUp transmits <strong>no telemetry, no crash reports, no usage statistics, and no diagnostic data</strong>
+      to BREIZHZION or any other party. The application makes no outbound network connections on its own.</p>
+
+      <h2>Remote web access</h2>
+      <p>Remote web access (<code>beammeup web on</code>) is <strong>off by default</strong> and must be explicitly
+      started by you. When active:</p>
+      <ul>
+        <li><strong>Plain HTTP, no TLS.</strong> The authentication token and all terminal content travel unencrypted.
+        Over Tailscale or a VPN the underlying tunnel (WireGuard) already encrypts everything; over a plain LAN or
+        Wi-Fi, any observer on that network segment can read the token and session output.</li>
+        <li><strong>Token.</strong> When you start the web server without supplying a token, BeamMeUp generates a
+        random 128-bit token and prints it to the console. This token exists <strong>in memory only</strong> for the
+        duration of that server session; it is not written to disk. If you supply your own token via
+        <code>--token</code>, you are responsible for its storage.</li>
+        <li><strong>Bind address.</strong> You choose the bind address. BeamMeUp does not validate or restrict it.</li>
+        <li><strong>No rate limiting.</strong> Token attempts are not rate-limited in the current version; an attacker
+        with network access to the bind address can try tokens as fast as the network allows. A random 128-bit token
+        is not brute-forceable in practice, but this is a documented gap.</li>
+        <li><strong>Endpoints.</strong> The web interface gives full read/write access to every open session.
+        Treat the access token like the password to this machine's shell.</li>
+      </ul>
+
+      <h2>Local storage</h2>
+      <p>BeamMeUp may write the following to disk on your machine:</p>
+      <ul>
+        <li><strong>Snippets</strong> you explicitly save via the CLI, stored in the application's data directory
+        (<code>%APPDATA%\beammeup</code> on Windows; <code>~/.local/share/beammeup</code> on Linux).</li>
+        <li><strong>Application binary and supporting files</strong> placed by the installer
+        (<code>%LOCALAPPDATA%\beammeup</code> on Windows; system package paths on Linux).</li>
+      </ul>
+      <p>No session content, command history, terminal output, or SSH credentials are written to disk by BeamMeUp.</p>
+
+      <h2>Third parties</h2>
+      <p>No telemetry vendor, analytics service, or other third party receives data from BeamMeUp. SSH sessions
+      connect to the servers you configure; anything exchanged in those sessions is between you and those servers.</p>
+
+      <h2>Contact</h2>
+      <p>Questions about this policy:
+      <a href="https://github.com/bzhzion/beammeup/issues">open an issue on GitHub</a>
+      or email <a href="mailto:contact@breizhzion.com">contact@breizhzion.com</a>.</p>
+
+    </div>
+  </main>
+</div>
+
+</body>
+</html>
