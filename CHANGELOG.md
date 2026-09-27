@@ -12,6 +12,19 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ## [Unreleased]
 
+### Ajouté
+
+- **Page de politique de confidentialité** (`site/privacy.html`), publiée à
+  `beammeup.breizhzion.com/privacy.html` : aucune télémétrie, risque HTTP non chiffré de l'accès
+  distant, stockage local (token en mémoire uniquement, snippets), aucun tiers. Demandée par un
+  modérateur winget avant validation de la PR de soumission `Breizhzion.BeamMeUp` 1.0.4. Reprend
+  la navigation réelle du site (sidebar/pillnav/topbar/panel) plutôt qu'une mise en page ad hoc.
+
+### Corrigé
+
+- **Lien de licence du footer** (`site/index.html`) pointait vers `LICENSE`, absent du dépôt
+  (le fichier s'appelle `LICENSE.md`) : 404 silencieux depuis la mise en ligne du site.
+
 ### Modifié
 
 - **`actions/checkout` et `actions/setup-node` passent en v7** dans les workflows : les versions

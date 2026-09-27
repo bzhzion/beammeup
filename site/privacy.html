@@ -11,97 +11,223 @@
 <link rel="stylesheet" href="https://cdn.breizhzion.com/fonts/Archivo/Archivo.css" />
 <link rel="stylesheet" href="https://cdn.breizhzion.com/fonts/JetBrainsMono/JetBrainsMono.css" />
 <link rel="stylesheet" href="styles.css" />
-<style>
-  .prose { max-width: 72ch; }
-  .prose h2 { font-family: var(--font-display); color: var(--orange); font-size: 1.15rem; text-transform: uppercase; letter-spacing: .05em; margin: 2.5rem 0 .6rem; }
-  .prose p, .prose li { font-size: .95rem; color: var(--text-dim); line-height: 1.7; }
-  .prose ul { padding-left: 1.4em; }
-  .prose li { margin-bottom: .3rem; }
-  .prose strong { color: var(--text); }
-  .prose code { font-family: var(--font-mono); font-size: .85em; color: var(--periwinkle); background: rgba(166,176,255,.08); padding: .1em .35em; border-radius: 4px; }
-  .prose a { color: var(--periwinkle); }
-  .page-title { font-family: var(--font-display); font-size: clamp(1.6rem, 4vw, 2.4rem); text-transform: uppercase; letter-spacing: .06em; color: var(--text); margin-bottom: .3rem; }
-  .page-subtitle { color: var(--text-dim); font-size: .9rem; margin-bottom: 2.5rem; }
-  .back-link { display: inline-flex; align-items: center; gap: .4em; font-size: .85rem; color: var(--text-faint); text-decoration: none; margin-bottom: 2rem; }
-  .back-link:hover { color: var(--periwinkle); }
-</style>
 </head>
 <body>
 
-<a class="skip-link" href="#content">Skip to main content</a>
+<a class="skip-link" href="#contenu">Skip to main content</a>
 
 <div class="frame">
+
+  <!-- ───────────────────────── SIDEBAR (port side) ───────────────────────── -->
   <aside class="sidebar" aria-label="Main navigation">
     <div class="sidebar-cap sidebar-cap--top" aria-hidden="true"></div>
     <div class="sidebar-brand">
-      <img src="assets/logo-trapezoid-transparent.svg" alt="" class="brand-mark" aria-hidden="true" />
+      <a href="index.html" aria-label="BeamMeUp home">
+        <img src="assets/logo-trapezoid-transparent.svg" alt="" class="brand-mark" aria-hidden="true" />
+      </a>
       <span class="brand-code">NCC&#8209;0001</span>
+      <button
+        id="nav-toggle"
+        class="nav-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="pillnav"
+        aria-label="Open navigation"
+      >
+        <span class="nav-toggle-bars" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="nav-toggle-label">MENU</span>
+      </button>
     </div>
-    <nav class="sidebar-nav" aria-label="Site navigation">
-      <a class="nav-item" href="index.html">Home</a>
-      <a class="nav-item nav-item--active" href="privacy.html">Privacy</a>
+    <nav class="pillnav" id="pillnav">
+      <a href="#overview" class="pill pill--orange"><span class="pill-code">01</span>Overview</a>
+      <a href="#telemetry" class="pill pill--red"><span class="pill-code">02</span>Telemetry</a>
+      <a href="#remote" class="pill pill--periwinkle"><span class="pill-code">03</span>Remote Access</a>
+      <a href="#storage" class="pill pill--violet"><span class="pill-code">04</span>Local Storage</a>
+      <a href="#third-parties" class="pill pill--blue"><span class="pill-code">05</span>Third Parties</a>
+      <a href="index.html" class="pill pill--periwinkle pill--cta"><span class="pill-code">06</span>Back to Site</a>
     </nav>
+    <div class="sidebar-readout" aria-hidden="true">
+      <span>LCARS&#8209;24176</span>
+      <span>ARCH.&nbsp;BEAMMEUP</span>
+    </div>
     <div class="sidebar-cap sidebar-cap--bottom" aria-hidden="true"></div>
   </aside>
 
-  <main class="content" id="content">
-    <a class="back-link" href="index.html">&#8592; Back to BeamMeUp</a>
+  <div class="main">
+    <!-- ───────────────────────── TOPBAR ───────────────────────── -->
+    <header class="topbar">
+      <div class="topbar-elbow" aria-hidden="true"></div>
+      <div class="topbar-bar">
+        <span class="topbar-chip topbar-chip--orange">BEAMMEUP</span>
+        <span class="topbar-chip topbar-chip--thin">PRIVACY&nbsp;POLICY</span>
+        <span class="topbar-stardate" id="stardate" aria-label="Timestamp">STARDATE&nbsp;<span id="stardate-value">77415.2</span></span>
+        <span class="topbar-chip topbar-chip--status">
+          <span class="status-dot" aria-hidden="true"></span>NO&nbsp;DATA&nbsp;COLLECTED
+        </span>
+      </div>
+    </header>
 
-    <h1 class="page-title">Privacy Policy</h1>
-    <p class="page-subtitle">Last updated: 2026-09-27 &nbsp;|&nbsp; Applies to all versions of BeamMeUp</p>
+    <main id="contenu">
 
-    <div class="prose">
+      <!-- ───────────────────────── OVERVIEW ───────────────────────── -->
+      <section id="overview" class="panel" aria-labelledby="overview-title">
+        <div class="panel-head panel-head--orange">
+          <span class="panel-tag">01 · OVERVIEW</span>
+          <h2 id="overview-title">Nothing collected, one exception you control</h2>
+        </div>
+        <div class="panel-body">
+          <p class="lede-small">
+            BeamMeUp collects <strong>no data</strong> and contacts <strong>no external server</strong>
+            during normal use. The one exception is the optional remote web access feature, which
+            you must explicitly enable; when active, terminal content travels unencrypted over your
+            local network. The details are below.
+          </p>
+          <p class="tutorial-footnote">Last updated: 2026-09-27 &nbsp;&middot;&nbsp; Applies to all versions of BeamMeUp.</p>
+        </div>
+      </section>
 
-      <h2>Summary</h2>
-      <p>BeamMeUp collects <strong>no data</strong> and contacts <strong>no external server</strong> during normal use.
-      The one exception is the optional remote web access feature, which you must explicitly enable; when active,
-      terminal content travels unencrypted over your local network. The details are below.</p>
+      <!-- ───────────────────────── TELEMETRY ───────────────────────── -->
+      <section id="telemetry" class="panel" aria-labelledby="telemetry-title">
+        <div class="panel-head panel-head--red">
+          <span class="panel-tag">02 · ALERT</span>
+          <h2 id="telemetry-title">Telemetry and diagnostics</h2>
+        </div>
+        <div class="panel-body">
+          <p>
+            BeamMeUp transmits <strong>no telemetry, no crash reports, no usage statistics, and no
+            diagnostic data</strong> to BREIZHZION or any other party. The application makes no
+            outbound network connections on its own.
+          </p>
+        </div>
+      </section>
 
-      <h2>Telemetry and diagnostics</h2>
-      <p>BeamMeUp transmits <strong>no telemetry, no crash reports, no usage statistics, and no diagnostic data</strong>
-      to BREIZHZION or any other party. The application makes no outbound network connections on its own.</p>
+      <!-- ───────────────────────── REMOTE ACCESS ───────────────────────── -->
+      <section id="remote" class="panel" aria-labelledby="remote-title">
+        <div class="panel-head panel-head--periwinkle">
+          <span class="panel-tag">03 · PROTOCOL</span>
+          <h2 id="remote-title">Remote web access</h2>
+        </div>
+        <div class="panel-body">
+          <p>
+            Remote web access (<code>beammeup web on</code>) is <strong>off by default</strong> and
+            must be explicitly started by you. When active:
+          </p>
+          <div class="clearance-grid">
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">&#9670;</span>
+              <div>
+                <h3>Plain HTTP, No TLS</h3>
+                <p>The authentication token and all terminal content travel unencrypted. Over
+                   Tailscale or a VPN the underlying tunnel (WireGuard) already encrypts everything;
+                   over a plain LAN or Wi-Fi, any observer on that network segment can read the
+                   token and session output.</p>
+              </div>
+            </div>
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">&#9670;</span>
+              <div>
+                <h3>Token, Memory Only</h3>
+                <p>When you start the web server without supplying a token, BeamMeUp generates a
+                   random 128-bit token and prints it to the console. This token exists in memory
+                   only for the duration of that server session; it is not written to disk. If you
+                   supply your own token via <code>--token</code>, you are responsible for its
+                   storage.</p>
+              </div>
+            </div>
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">&#9670;</span>
+              <div>
+                <h3>Bind Address, Your Call</h3>
+                <p>You choose the bind address. BeamMeUp does not validate or restrict it.</p>
+              </div>
+            </div>
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">&#9670;</span>
+              <div>
+                <h3>No Rate Limiting</h3>
+                <p>Token attempts are not rate-limited in the current version; an attacker with
+                   network access to the bind address can try tokens as fast as the network allows.
+                   A random 128-bit token is not brute-forceable in practice, but this is a
+                   documented gap.</p>
+              </div>
+            </div>
+          </div>
+          <p class="tutorial-footnote">
+            The web interface gives full read/write access to every open session. Treat the access
+            token like the password to this machine's shell.
+          </p>
+        </div>
+      </section>
 
-      <h2>Remote web access</h2>
-      <p>Remote web access (<code>beammeup web on</code>) is <strong>off by default</strong> and must be explicitly
-      started by you. When active:</p>
-      <ul>
-        <li><strong>Plain HTTP, no TLS.</strong> The authentication token and all terminal content travel unencrypted.
-        Over Tailscale or a VPN the underlying tunnel (WireGuard) already encrypts everything; over a plain LAN or
-        Wi-Fi, any observer on that network segment can read the token and session output.</li>
-        <li><strong>Token.</strong> When you start the web server without supplying a token, BeamMeUp generates a
-        random 128-bit token and prints it to the console. This token exists <strong>in memory only</strong> for the
-        duration of that server session; it is not written to disk. If you supply your own token via
-        <code>--token</code>, you are responsible for its storage.</li>
-        <li><strong>Bind address.</strong> You choose the bind address. BeamMeUp does not validate or restrict it.</li>
-        <li><strong>No rate limiting.</strong> Token attempts are not rate-limited in the current version; an attacker
-        with network access to the bind address can try tokens as fast as the network allows. A random 128-bit token
-        is not brute-forceable in practice, but this is a documented gap.</li>
-        <li><strong>Endpoints.</strong> The web interface gives full read/write access to every open session.
-        Treat the access token like the password to this machine's shell.</li>
-      </ul>
+      <!-- ───────────────────────── LOCAL STORAGE ───────────────────────── -->
+      <section id="storage" class="panel" aria-labelledby="storage-title">
+        <div class="panel-head panel-head--violet">
+          <span class="panel-tag">04 · SYSTEMS</span>
+          <h2 id="storage-title">Local storage</h2>
+        </div>
+        <div class="panel-body">
+          <p class="lede-small">
+            BeamMeUp may write the following to disk on your machine, and nothing else:
+          </p>
+          <div class="clearance-grid">
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">&#9670;</span>
+              <div>
+                <h3>Snippets</h3>
+                <p>Only what you explicitly save via the CLI, stored in the application's data
+                   directory (<code>%APPDATA%\beammeup</code> on Windows;
+                   <code>~/.local/share/beammeup</code> on Linux).</p>
+              </div>
+            </div>
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">&#9670;</span>
+              <div>
+                <h3>Application Files</h3>
+                <p>The binary and supporting files placed by the installer
+                   (<code>%LOCALAPPDATA%\beammeup</code> on Windows; system package paths on
+                   Linux).</p>
+              </div>
+            </div>
+          </div>
+          <p class="tutorial-footnote">
+            No session content, command history, terminal output, or SSH credentials are written
+            to disk by BeamMeUp.
+          </p>
+        </div>
+      </section>
 
-      <h2>Local storage</h2>
-      <p>BeamMeUp may write the following to disk on your machine:</p>
-      <ul>
-        <li><strong>Snippets</strong> you explicitly save via the CLI, stored in the application's data directory
-        (<code>%APPDATA%\beammeup</code> on Windows; <code>~/.local/share/beammeup</code> on Linux).</li>
-        <li><strong>Application binary and supporting files</strong> placed by the installer
-        (<code>%LOCALAPPDATA%\beammeup</code> on Windows; system package paths on Linux).</li>
-      </ul>
-      <p>No session content, command history, terminal output, or SSH credentials are written to disk by BeamMeUp.</p>
+      <!-- ───────────────────────── THIRD PARTIES ───────────────────────── -->
+      <section id="third-parties" class="panel" aria-labelledby="third-parties-title">
+        <div class="panel-head panel-head--blue">
+          <span class="panel-tag">05 · TRANSMISSIONS</span>
+          <h2 id="third-parties-title">Third parties &amp; contact</h2>
+        </div>
+        <div class="panel-body">
+          <p>
+            No telemetry vendor, analytics service, or other third party receives data from
+            BeamMeUp. SSH sessions connect to the servers you configure; anything exchanged in
+            those sessions is between you and those servers.
+          </p>
+          <p class="tutorial-footnote">
+            Questions about this policy:
+            <a href="https://github.com/bzhzion/beammeup/issues" target="_blank" rel="noopener">open an issue on GitHub</a>
+            or email <a href="mailto:beammeup@breizhzion.com">beammeup@breizhzion.com</a>.
+          </p>
+        </div>
+      </section>
 
-      <h2>Third parties</h2>
-      <p>No telemetry vendor, analytics service, or other third party receives data from BeamMeUp. SSH sessions
-      connect to the servers you configure; anything exchanged in those sessions is between you and those servers.</p>
+    </main>
 
-      <h2>Contact</h2>
-      <p>Questions about this policy:
-      <a href="https://github.com/bzhzion/beammeup/issues">open an issue on GitHub</a>
-      or email <a href="mailto:beammeup@breizhzion.com">beammeup@breizhzion.com</a>.</p>
-
-    </div>
-  </main>
+    <footer class="site-footer">
+      <p>
+        BeamMeUp · <a href="https://github.com/bzhzion/beammeup/blob/main/LICENSE.md" target="_blank" rel="noopener">BZ&#8209;1.1 License</a>
+        (BREIZHZION Personal Use License). Personal use only.
+      </p>
+      <p class="site-footer-sub">A <a href="https://breizhzion.com" target="_blank" rel="noopener">BREIZHZION</a> project.</p>
+    </footer>
+  </div>
 </div>
 
+<script src="script.js"></script>
 </body>
 </html>
