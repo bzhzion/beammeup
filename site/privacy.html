@@ -126,12 +126,16 @@
             <div class="clearance-item">
               <span class="clearance-mark" aria-hidden="true">&#9670;</span>
               <div>
-                <h3>Token, Memory Only</h3>
-                <p>When you start the web server without supplying a token, BeamMeUp generates a
-                   random 128-bit token and prints it to the console. This token exists in memory
-                   only for the duration of that server session; it is not written to disk. If you
-                   supply your own token via <code>--token</code>, you are responsible for its
-                   storage.</p>
+                <h3>Token, Persisted to Disk</h3>
+                <p>The bind address, token, and an autostart flag are saved to <code>remote.json</code>
+                   every time you run <code>beammeup web on</code>, so the server can come back
+                   automatically on the next launch. This file lives at
+                   <code>%APPDATA%\beammeup\remote.json</code> on Windows and
+                   <code>~/.config/beammeup/remote.json</code> on Linux. On Linux it is written
+                   with owner-only permissions (<code>0600</code>), including on a file created by
+                   an older version. On Windows no additional permissions are set beyond the
+                   profile's own default: <code>%APPDATA%</code> is already restricted by Windows to
+                   the account that owns it, not to other non-administrator local accounts.</p>
               </div>
             </div>
             <div class="clearance-item">
@@ -151,6 +155,17 @@
                    documented gap.</p>
               </div>
             </div>
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">&#9670;</span>
+              <div>
+                <h3>Removing the Token</h3>
+                <p><code>beammeup web off</code> stops the server and turns off autostart, but it
+                   does <strong>not</strong> delete the token from <code>remote.json</code>: the
+                   file and its contents remain on disk. To remove the token and settings entirely,
+                   delete <code>remote.json</code> at the path above. There is currently no CLI
+                   command that does this for you.</p>
+              </div>
+            </div>
           </div>
           <p class="tutorial-footnote">
             The web interface gives full read/write access to every open session. Treat the access
@@ -167,16 +182,17 @@
         </div>
         <div class="panel-body">
           <p class="lede-small">
-            BeamMeUp may write the following to disk on your machine, and nothing else:
+            Beyond the remote-access settings covered above, BeamMeUp may write the following to
+            disk, and nothing else:
           </p>
           <div class="clearance-grid">
             <div class="clearance-item">
               <span class="clearance-mark" aria-hidden="true">&#9670;</span>
               <div>
                 <h3>Snippets</h3>
-                <p>Only what you explicitly save via the CLI, stored in the application's data
-                   directory (<code>%APPDATA%\beammeup</code> on Windows;
-                   <code>~/.local/share/beammeup</code> on Linux).</p>
+                <p>Plain command text you explicitly save via the CLI, not a secret by design,
+                   stored at <code>%APPDATA%\beammeup\snippets.json</code> on Windows and
+                   <code>~/.config/beammeup/snippets.json</code> on Linux.</p>
               </div>
             </div>
             <div class="clearance-item">

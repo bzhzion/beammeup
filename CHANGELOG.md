@@ -16,9 +16,22 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 - **Page de politique de confidentialité** (`site/privacy.html`), publiée à
   `beammeup.breizhzion.com/privacy.html` : aucune télémétrie, risque HTTP non chiffré de l'accès
-  distant, stockage local (token en mémoire uniquement, snippets), aucun tiers. Demandée par un
-  modérateur winget avant validation de la PR de soumission `Breizhzion.BeamMeUp` 1.0.4. Reprend
-  la navigation réelle du site (sidebar/pillnav/topbar/panel) plutôt qu'une mise en page ad hoc.
+  distant, stockage local, aucun tiers. Demandée par un modérateur winget avant validation de la
+  PR de soumission `Breizhzion.BeamMeUp` 1.0.4. Reprend la navigation réelle du site
+  (sidebar/pillnav/topbar/panel) plutôt qu'une mise en page ad hoc.
+
+### Corrigé
+
+- **La première version de `privacy.html` affirmait que le token d'accès distant restait en
+  mémoire et n'était jamais écrit sur disque : faux.** `remote_web.rs` sérialise `RemoteConfig`
+  (bind, token, autostart) dans `remote.json` à chaque `beammeup web on`, chemin réel vérifié dans
+  le code (`dirs::config_dir()`) : `%APPDATA%\beammeup\remote.json` sur Windows — **pas**
+  `%LOCALAPPDATA%`, contrairement à ce qu'affirme un commentaire du code lui-même — et
+  `~/.config/beammeup/remote.json` sur Linux (également faux pour les snippets, documentés à tort
+  sous `~/.local/share/beammeup`). La page documente maintenant aussi que `beammeup web off`
+  n'efface pas le token du fichier, et qu'aucune commande CLI ne le fait aujourd'hui : la seule
+  suppression possible est manuelle. Repéré par un modérateur winget sur la PR, pas par une
+  relecture interne.
 
 ### Corrigé
 
