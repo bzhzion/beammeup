@@ -209,6 +209,10 @@ beammeup key my-work shift-tab
 > Windows paths that contain `\r`/`\t`/`\n` as a two character sequence (`C:\repo`, `C:\temp`...).
 > `--enter` sidesteps the problem entirely.
 
+> **Available from the first release after 1.0.4.** Version 1.0.4 knows only `ctrl-c`, `ctrl-d`,
+> `ctrl-z`, `enter`, `tab` and `esc`. For any other key, `send` with the raw escape sequence works
+> on every version (an arrow down is `ESC [ B`).
+
 Available keys, case-insensitive:
 
 - **Editing and control:** `enter`, `tab`, `shift-tab`, `esc`, `space`, `backspace`, `delete`,

@@ -28,7 +28,9 @@ L'historique git reste la source de vérité pour ce qui précède.
   ⚠️ Séquences xterm en mode curseur normal : un programme passé en *mode curseur applicatif* attend
   `ESC O A` et peut ignorer les flèches, BeamMeUp ne suit pas ce mode ; `send` avec la séquence
   exacte reste le recours. Les six anciennes touches gardent exactement leurs octets (test de
-  non-régression).
+  non-régression). ⚠️ **Au moment de poser le tag, retirer la mention « first release after 1.0.4 »**
+  du README et du skill (`grep -rn "after 1.0.4"`), qui existe pour ne pas annoncer à un utilisateur
+  de la 1.0.4 des touches qu'elle n'a pas.
 
 - **Page de politique de confidentialité** (`site/privacy.html`), publiée à
   `beammeup.breizhzion.com/privacy.html` : aucune télémétrie, risque HTTP non chiffré de l'accès
@@ -45,6 +47,10 @@ L'historique git reste la source de vérité pour ce qui précède.
   ⚠️ **La politique de confidentialité doit suivre ce que l'application écrit sur le disque** :
   une version publiée automatiquement ne passe plus sous les yeux de personne avant d'être en
   ligne.
+- **`robots.txt`, `sitemap.xml` et `llms.txt` pour le site** : jusqu'ici Cloudflare Pages répondait
+  **200 avec la page d'accueil en HTML** à ces trois adresses, donc un robot lisait du HTML en
+  guise de `robots.txt`. Aucune date de modification dans le plan du site, qui serait devenue fausse
+  au premier changement.
 - **Garde-fou `scripts/verifier-ecritures-disque.py`** qui bloque la publication winget (première
   étape de `publish-winget.yml`) et fait échouer la CI (`ci.yml`, job `politique`) quand la
   politique de confidentialité a pu devenir fausse. Deux contrôles dérivés du code : chaque nom de
@@ -96,6 +102,11 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ### Modifié
 
+- **Le site met en avant trois choses qu'il ne disait pas** : l'outil ne vole jamais le focus (SYS.12,
+  comportement de la 1.0.4), l'interface côté humain, barre latérale comprise (SYS.13), et le
+  durcissement de l'accès distant, dit avec ses limites (comparaison à temps constant, refus des
+  requêtes de type DNS rebinding sans token, HTTP en clair à réserver à Tailscale ou à un VPN).
+  Un lien « Privacy policy » en pied de page : la politique n'était accessible que depuis winget.
 - **Le site montre enfin le produit, et dit à l'agent comment s'en servir** : une vraie capture de
   la fenêtre (`site/assets/real-window.png`, trois sessions et un menu à flèches dont l'agent vient
   de déplacer la sélection, centrée avec sa légende) dans la section « One command post, two operators » ; un bloc « Then

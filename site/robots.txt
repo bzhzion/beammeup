@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://beammeup.breizhzion.com/sitemap.xml

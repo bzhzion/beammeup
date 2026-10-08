@@ -1,0 +1,21 @@
+# BeamMeUp
+
+> One terminal window, shared in real time between a human and an AI coding agent, on Windows and Linux. The agent calls the `beammeup` command the way it would call `git` or `npm`; the human sees the same session live and can take over at any time. No MCP server to configure, no hidden window.
+
+## Use it
+
+- [Install](https://beammeup.breizhzion.com/#telechargement): `winget install Breizhzion.BeamMeUp` on Windows, `sudo apt install beammeup` on Linux
+- [Guide for AI agents](https://github.com/bzhzion/beammeup#for-ai-agents): which command to use when, and the known limits
+- [Full walkthrough](https://github.com/bzhzion/beammeup#full-walkthrough): every command with an example
+- [Ready-made skill for Claude Code](https://github.com/bzhzion/beammeup/tree/main/.claude/skills/beammeup)
+
+## Trust
+
+- [Security model and its known limits](https://github.com/bzhzion/beammeup#security)
+- [Privacy policy](https://beammeup.breizhzion.com/privacy.html): no telemetry, and exactly what is written to disk
+- [License BZ-1.1](https://github.com/bzhzion/beammeup/blob/main/LICENSE.md): personal use
+
+## Optional
+
+- [Releases](https://github.com/bzhzion/beammeup/releases)
+- [Issues](https://github.com/bzhzion/beammeup/issues)
