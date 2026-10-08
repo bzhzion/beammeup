@@ -1,9 +1,20 @@
 name: Publier sur winget
 
-# Volontairement decouple du build (release-windows.yml) : declenchement manuel uniquement, jamais
-# automatique. Publier sur winget ouvre une pull request sur `microsoft/winget-pkgs`, depot tiers
-# tres frequente revu par des mainteneurs externes : ce n'est pas quelque chose qui doit partir a
-# chaque tag, en particulier pendant une serie de builds de test.
+# Deux facons de le lancer :
+#
+# - AUTOMATIQUEMENT, par release-windows.yml, qui l'appelle dans un job `winget` distinct apres le
+#   build, sur un push de tag `vX.Y.Z` uniquement. Jamais sur un `workflow_dispatch` de
+#   release-windows, qui sert a rejouer une release deja publiee : rouvrir alors une PR sur une
+#   version que winget connait deja ne produirait qu'un doublon.
+# - A LA MAIN, ici, pour republier ou rattraper une version.
+#
+# Publier sur winget ouvre une pull request sur `microsoft/winget-pkgs`, depot tiers revu par des
+# mainteneurs externes.
+#
+# Un job SEPARE et sans `continue-on-error`, sur la lecon de justmakeq : son etape winget, placee
+# dans le job de release avec `continue-on-error: true`, est restee en panne sans que personne le
+# voie depuis la beta.81, puis a la beta.98. Ici un echec rend le run rouge, alors que la release
+# est deja publiee puisque c'est un autre job.
 #
 # Pas de variable d'opt-in enchainee ici, contrairement a ce qu'on faisait avant sur les apps
 # mobiles de l'ecosysteme : ce mecanisme (vars.AUTO_PUBLISH_STORES + reinitialisation a false en
@@ -13,6 +24,12 @@ name: Publier sur winget
 # probleme. Voir appermittent/publish-ios.yml et publish-android.yml.
 
 on:
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version a publier (ex: 0.2.0), doit deja avoir une Release GitHub'
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       version:

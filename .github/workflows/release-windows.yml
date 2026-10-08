@@ -38,6 +38,8 @@ jobs:
     # d'execution de code non maitrise). windows-latest inclut deja Rust + Visual Studio
     # Build Tools (C++), pas d'install a faire.
     runs-on: windows-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
 
     steps:
       - uses: actions/checkout@v7
@@ -207,3 +209,21 @@ jobs:
           aws s3 cp latest.json "s3://breizhzion-releases/beammeup/latest.json" `
             --endpoint-url $r2 --content-type application/json
           if ($LASTEXITCODE -ne 0) { throw "envoi de latest.json en echec" }
+
+  # Publication sur winget : un job a part, et NON une etape du job `build` en
+  # `continue-on-error: true`. C'est le motif de justmakeq, et c'est exactement ce qu'il ne faut pas
+  # en reprendre : son etape winget est restee en panne sans que personne le voie, depuis la beta.81
+  # puis a la beta.98, parce qu'un echec n'y changeait la couleur de rien. Ici la release (GitHub,
+  # R2, latest.json) est deja publiee quand ce job demarre, donc un echec rend le run rouge sans
+  # rien defaire.
+  #
+  # Uniquement sur un push de tag. Un `workflow_dispatch` rejoue une release deja connue de
+  # winget : rouvrir une PR sur cette version ne produirait qu'un doublon. Pour republier a la
+  # main, lancer `publish-winget.yml` directement.
+  winget:
+    needs: build
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/publish-winget.yml
+    with:
+      version: ${{ needs.build.outputs.version }}
+    secrets: inherit

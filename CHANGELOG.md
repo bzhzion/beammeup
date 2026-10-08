@@ -19,6 +19,16 @@ L'historique git reste la source de vérité pour ce qui précède.
   distant, stockage local, aucun tiers. Demandée par un modérateur winget avant validation de la
   PR de soumission `Breizhzion.BeamMeUp` 1.0.4. Reprend la navigation réelle du site
   (sidebar/pillnav/topbar/panel) plutôt qu'une mise en page ad hoc.
+- **Publication winget automatique à chaque tag** : `release-windows.yml` appelle désormais
+  `publish-winget.yml` dans un job `winget` distinct, après le build, sur un push de tag
+  `vX.Y.Z` uniquement (jamais sur un rejeu par `workflow_dispatch`, qui ne produirait qu'un
+  doublon). Le paquet existe en amont depuis la fusion de la PR #424365 le 2026-10-08.
+  ⚠️ **Volontairement pas en `continue-on-error`**, contrairement à justmakeq, dont l'étape winget
+  est restée en panne des semaines sans que rien ne le montre : un échec rend le run rouge, la
+  release étant déjà publiée par le job précédent. `publish-winget.yml` reste lançable à la main.
+  ⚠️ **La politique de confidentialité doit suivre ce que l'application écrit sur le disque** :
+  une version publiée automatiquement ne passe plus sous les yeux de personne avant d'être en
+  ligne.
 
 ### Corrigé
 
