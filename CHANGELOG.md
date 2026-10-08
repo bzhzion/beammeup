@@ -98,7 +98,7 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 - **Le site montre enfin le produit, et dit à l'agent comment s'en servir** : une vraie capture de
   la fenêtre (`site/assets/real-window.png`, trois sessions et un menu à flèches dont l'agent vient
-  de déplacer la sélection) dans la section « One command post, two operators » ; un bloc « Then
+  de déplacer la sélection, centrée avec sa légende) dans la section « One command post, two operators » ; un bloc « Then
   tell your agent », texte à coller dans un `AGENTS.md` ou un `CLAUDE.md` avec les six commandes
   utiles et le lien vers la section « For AI agents » du README ; des balises de partage (Open
   Graph, Twitter, canonical, couleur de thème) et des données structurées `SoftwareApplication`,

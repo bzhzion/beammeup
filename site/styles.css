@@ -832,13 +832,15 @@ button:focus-visible,
   width: 100%;
   max-width: 1000px;
   height: auto;
+  margin: 0 auto;
   border-radius: var(--radius-sm);
   border: 1px solid rgba(166, 176, 255, 0.25);
   background: var(--black);
 }
 
 .shot figcaption {
-  margin-top: 0.7rem;
+  margin: 0.7rem auto 0;
+  text-align: center;
   max-width: 62ch;
   color: var(--text-dim);
   font-size: 0.88rem;
