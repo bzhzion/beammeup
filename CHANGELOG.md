@@ -96,6 +96,15 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ### Modifié
 
+- **Le site montre enfin le produit, et dit à l'agent comment s'en servir** : une vraie capture de
+  la fenêtre (`site/assets/real-window.png`, trois sessions et un menu à flèches dont l'agent vient
+  de déplacer la sélection) dans la section « One command post, two operators » ; un bloc « Then
+  tell your agent », texte à coller dans un `AGENTS.md` ou un `CLAUDE.md` avec les six commandes
+  utiles et le lien vers la section « For AI agents » du README ; des balises de partage (Open
+  Graph, Twitter, canonical, couleur de thème) et des données structurées `SoftwareApplication`,
+  sans numéro de version écrit en dur. La capture est prise sur un projet de démonstration, avec une
+  invite neutre : **aucun nom d'utilisateur ni chemin personnel** (contrôlé à l'œil et par recherche
+  dans le fichier). Rendu vérifié dans un vrai navigateur avant mise en ligne.
 - **winget est mis en avant sur le site et dans le README** (section Téléchargement, carte
   Windows, et `## Installation`). Le site affichait déjà `winget install Breizhzion.BeamMeUp`
   avant que le paquet existe en amont, donc une commande qui ne marchait pas ; elle est vraie

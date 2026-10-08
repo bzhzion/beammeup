@@ -6,6 +6,30 @@
 <title>BeamMeUp · Shared Console for Human / Agent</title>
 <meta name="description" content="BeamMeUp: a single terminal window, shared in real time between you and an AI agent. Windows and Linux. PowerShell, cmd, Git Bash, WSL, bash, zsh, SSH: detected, never guessed." />
 <link rel="icon" type="image/svg+xml" href="assets/logo-trapezoid-transparent.svg" />
+<link rel="canonical" href="https://beammeup.breizhzion.com/" />
+<meta name="theme-color" content="#050506" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="BeamMeUp" />
+<meta property="og:title" content="BeamMeUp · Shared Console for Human / Agent" />
+<meta property="og:description" content="One terminal window, shared in real time between you and an AI agent. The agent drives PowerShell, Git Bash, WSL or SSH; you see it live and can type in the same session." />
+<meta property="og:url" content="https://beammeup.breizhzion.com/" />
+<meta property="og:image" content="https://beammeup.breizhzion.com/assets/real-window.png" />
+<meta property="og:image:alt" content="The BeamMeUp window: a sidebar listing three sessions and a terminal showing a deployment menu with production selected." />
+<meta name="twitter:card" content="summary_large_image" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "BeamMeUp",
+  "description": "One terminal window, shared in real time between a human and an AI coding agent, on Windows and Linux.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Windows, Linux",
+  "url": "https://beammeup.breizhzion.com/",
+  "downloadUrl": "https://github.com/bzhzion/beammeup/releases/latest",
+  "license": "https://github.com/bzhzion/beammeup/blob/main/LICENSE.md",
+  "publisher": { "@type": "Organization", "name": "BREIZHZION", "url": "https://breizhzion.com" }
+}
+</script>
 <link rel="preconnect" href="https://cdn.breizhzion.com" crossorigin />
 <link rel="stylesheet" href="https://cdn.breizhzion.com/fonts/Antonio/Antonio.css" />
 <link rel="stylesheet" href="https://cdn.breizhzion.com/fonts/Archivo/Archivo.css" />
@@ -148,6 +172,15 @@
                  the console being on screen.</p>
             </div>
           </div>
+          <figure class="shot">
+            <img src="assets/real-window.png" width="1000" height="650" loading="lazy"
+                 alt="The BeamMeUp window: a sidebar listing three sessions (build, bash, deploy) and a terminal showing a deployment menu with production selected." />
+            <figcaption>
+              The real window, on a demo project. The agent has just moved the selection to
+              <em>production</em> with one arrow key. The human sees it live and can take over on
+              the same session.
+            </figcaption>
+          </figure>
           <p class="axiom">
             <span class="axiom-tag">DIRECTIVE&nbsp;01</span>
             No stealth mode. No execution without a visible window. Ever.
@@ -377,6 +410,26 @@
               <pre><code>sudo apt install beammeup</code></pre>
             </article>
           </div>
+
+          <article class="platform-card platform-card--wide">
+            <span class="feature-code accent-violet">THEN TELL YOUR AGENT</span>
+            <p>Paste this into your agent's instructions (an <code>AGENTS.md</code>, a
+               <code>CLAUDE.md</code>, a system prompt). A ready-made skill for Claude Code is
+               also in the repository, under <code>.claude/skills/beammeup</code>.</p>
+            <pre><code>BeamMeUp is installed (command: beammeup). When a command needs a real
+interactive terminal (a menu, a wizard, a y/n prompt, a password), do not
+fail: open a visible session and work in it.
+
+  beammeup shells                              list the available shells
+  beammeup open --shell &lt;id&gt; --label my-work   open a named session
+  beammeup exec my-work "&lt;command&gt;"            run it, wait for output and exit code
+  beammeup send my-work "&lt;text&gt;" --enter       type into the session
+  beammeup key my-work ctrl-c                  send a special key
+  beammeup read my-work --plain --last         read what happened
+
+The window is always visible to the human, who can step in at any time.
+Full guide: https://github.com/bzhzion/beammeup#for-ai-agents</code></pre>
+          </article>
 
           <div class="cta-row">
             <a class="btn btn--primary btn--large" href="https://github.com/bzhzion/beammeup/releases/latest" target="_blank" rel="noopener">

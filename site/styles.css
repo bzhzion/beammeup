@@ -819,6 +819,31 @@ button:focus-visible,
   font-size: 0.85rem;
 }
 
+.platform-card--wide {
+  margin: 0 0 1.6rem;
+}
+
+.shot {
+  margin: 1.6rem 0 0;
+}
+
+.shot img {
+  display: block;
+  width: 100%;
+  max-width: 1000px;
+  height: auto;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(166, 176, 255, 0.25);
+  background: var(--black);
+}
+
+.shot figcaption {
+  margin-top: 0.7rem;
+  max-width: 62ch;
+  color: var(--text-dim);
+  font-size: 0.88rem;
+}
+
 /* -------------------------------------------------------------------------
    Transmission log (tutorial)
    ------------------------------------------------------------------------- */
