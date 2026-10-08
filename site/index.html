@@ -27,7 +27,26 @@
   "url": "https://beammeup.breizhzion.com/",
   "downloadUrl": "https://github.com/bzhzion/beammeup/releases/latest",
   "license": "https://github.com/bzhzion/beammeup/blob/main/LICENSE.md",
+  "screenshot": "https://beammeup.breizhzion.com/assets/real-window.png",
+  "sameAs": ["https://github.com/bzhzion/beammeup"],
   "publisher": { "@type": "Organization", "name": "BREIZHZION", "url": "https://breizhzion.com" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What is BeamMeUp?", "acceptedAnswer": { "@type": "Answer", "text": "A program for Windows and Linux that opens real terminals (PowerShell, cmd, Git Bash, WSL, bash, zsh, SSH) in one window shared between you and an AI agent. The agent drives them through the beammeup command. You see everything live and can type in the same session." } },
+    { "@type": "Question", "name": "Do I need to set up an MCP server?", "acceptedAnswer": { "@type": "Answer", "text": "No. BeamMeUp is not a server you start ahead of time. The agent calls the beammeup command the way it would call git, and the window opens, visible, if it is not already." } },
+    { "@type": "Question", "name": "Which agents does it work with?", "acceptedAnswer": { "@type": "Answer", "text": "Any agent that can run a shell command, such as Claude Code or Codex. The README has a section written for agents, and the repository includes a ready-made skill for Claude Code." } },
+    { "@type": "Question", "name": "Why not just use the agent's own shell?", "acceptedAnswer": { "@type": "Answer", "text": "An agent's sandboxed shell has no real terminal, so arrow-key menus, y/n confirmations and wizards such as eas credentials or npm init fail. In a BeamMeUp session they work, and a human can answer a password prompt." } },
+    { "@type": "Question", "name": "Is it safe to use?", "acceptedAnswer": { "@type": "Answer", "text": "It stores no SSH password or key, and the window is always visible. It runs as administrator by design, which suits a personal machine and not a shared server. Remote access from a phone is off by default and uses plain HTTP, so use it over Tailscale or a VPN. The security section and the privacy policy give the details." } },
+    { "@type": "Question", "name": "Does it collect any data?", "acceptedAnswer": { "@type": "Answer", "text": "No telemetry, no usage statistics and no outbound connection of its own. The privacy policy lists exactly what BeamMeUp writes to disk." } },
+    { "@type": "Question", "name": "Is it free?", "acceptedAnswer": { "@type": "Answer", "text": "It is free to download and use personally, under the BZ-1.1 license. Manufacturing or commercial use for a third party requires a written commercial license." } },
+    { "@type": "Question", "name": "How do I install it?", "acceptedAnswer": { "@type": "Answer", "text": "On Windows, run winget install Breizhzion.BeamMeUp. On Linux, run sudo apt install beammeup after adding the repository, or use the AppImage. The installers are also on the GitHub releases page." } },
+    { "@type": "Question", "name": "Does it run on macOS?", "acceptedAnswer": { "@type": "Answer", "text": "No. BeamMeUp is built for Windows and Linux, and has never been run on macOS." } }
+  ]
 }
 </script>
 <link rel="preconnect" href="https://cdn.breizhzion.com" crossorigin />
@@ -70,6 +89,7 @@
       <a href="#tutoriel" class="pill pill--blue"><span class="pill-code">05</span>Transmissions</a>
       <a href="#securite" class="pill pill--orange"><span class="pill-code">06</span>Security</a>
       <a href="#telechargement" class="pill pill--periwinkle pill--cta"><span class="pill-code">07</span>Beam Down</a>
+      <a href="#faq" class="pill pill--blue"><span class="pill-code">08</span>FAQ</a>
     </nav>
     <div class="sidebar-readout" aria-hidden="true">
       <span>LCARS&#8209;24176</span>
@@ -473,6 +493,81 @@ Full guide: https://github.com/bzhzion/beammeup#for-ai-agents</code></pre>
         </div>
       </section>
 
+      <!-- ───────────────────────── FAQ ───────────────────────── -->
+      <section id="faq" class="panel" aria-labelledby="faq-title">
+        <div class="panel-head panel-head--blue">
+          <span class="panel-tag">08 · LOG</span>
+          <h2 id="faq-title">Frequently Asked Questions</h2>
+        </div>
+        <div class="panel-body">
+          <div class="clearance-grid">
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">◆</span>
+              <div>
+                <h3>What is BeamMeUp?</h3>
+                <p>A program for Windows and Linux that opens real terminals (PowerShell, cmd, Git Bash, WSL, bash, zsh, SSH) in one window shared between you and an AI agent. The agent drives them through the <code>beammeup</code> command. You see everything live and can type in the same session.</p>
+              </div>
+            </div>
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">◆</span>
+              <div>
+                <h3>Do I need to set up an MCP server?</h3>
+                <p>No. BeamMeUp is not a server you start ahead of time. The agent calls the <code>beammeup</code> command the way it would call <code>git</code>, and the window opens, visible, if it is not already.</p>
+              </div>
+            </div>
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">◆</span>
+              <div>
+                <h3>Which agents does it work with?</h3>
+                <p>Any agent that can run a shell command, such as Claude Code or Codex. The README has a section written for agents, and the repository includes a ready-made skill for Claude Code.</p>
+              </div>
+            </div>
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">◆</span>
+              <div>
+                <h3>Why not just use the agent's own shell?</h3>
+                <p>An agent's sandboxed shell has no real terminal, so arrow-key menus, y/n confirmations and wizards such as <code>eas credentials</code> or <code>npm init</code> fail. In a BeamMeUp session they work, and a human can answer a password prompt.</p>
+              </div>
+            </div>
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">◆</span>
+              <div>
+                <h3>Is it safe to use?</h3>
+                <p>It stores no SSH password or key, and the window is always visible. It runs as administrator by design, which suits a personal machine and not a shared server. Remote access from a phone is off by default and uses plain HTTP, so use it over Tailscale or a VPN. The security section and the privacy policy give the details.</p>
+              </div>
+            </div>
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">◆</span>
+              <div>
+                <h3>Does it collect any data?</h3>
+                <p>No telemetry, no usage statistics and no outbound connection of its own. The privacy policy lists exactly what BeamMeUp writes to disk.</p>
+              </div>
+            </div>
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">◆</span>
+              <div>
+                <h3>Is it free?</h3>
+                <p>It is free to download and use personally, under the BZ-1.1 license. Manufacturing or commercial use for a third party requires a written commercial license.</p>
+              </div>
+            </div>
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">◆</span>
+              <div>
+                <h3>How do I install it?</h3>
+                <p>On Windows, run <code>winget install Breizhzion.BeamMeUp</code>. On Linux, run <code>sudo apt install beammeup</code> after adding the repository, or use the AppImage. The installers are also on the GitHub releases page.</p>
+              </div>
+            </div>
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">◆</span>
+              <div>
+                <h3>Does it run on macOS?</h3>
+                <p>No. BeamMeUp is built for Windows and Linux, and has never been run on macOS.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </main>
 
     <footer class="site-footer">
@@ -481,7 +576,7 @@ Full guide: https://github.com/bzhzion/beammeup#for-ai-agents</code></pre>
         (BREIZHZION Personal Use License). Personal use only.
       </p>
       <p class="site-footer-sub">A <a href="https://breizhzion.com" target="_blank" rel="noopener">BREIZHZION</a> project.
-        · <a href="privacy.html">Privacy policy</a></p>
+        · <a href="/privacy">Privacy policy</a></p>
     </footer>
   </div>
 </div>

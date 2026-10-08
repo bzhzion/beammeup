@@ -12,7 +12,7 @@
 ## Trust
 
 - [Security model and its known limits](https://github.com/bzhzion/beammeup#security)
-- [Privacy policy](https://beammeup.breizhzion.com/privacy.html): no telemetry, and exactly what is written to disk
+- [Privacy policy](https://beammeup.breizhzion.com/privacy): no telemetry, and exactly what is written to disk
 - [License BZ-1.1](https://github.com/bzhzion/beammeup/blob/main/LICENSE.md): personal use
 
 ## Optional

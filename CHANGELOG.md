@@ -102,6 +102,14 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ### Modifié
 
+- **Corrections issues de l'audit GEO du site** : une section FAQ de neuf questions, visible et en
+  données structurées `FAQPage` (texte identique, vérifié par script) ; `screenshot` et `sameAs` dans
+  les données `SoftwareApplication` ; un fichier `_headers` qui pose une politique de sécurité du
+  contenu stricte (possible parce que les pages n'ont aucun script ni style en ligne),
+  `Strict-Transport-Security` et `Permissions-Policy` ; la page de confidentialité référencée par
+  son adresse finale `/privacy` (Cloudflare redirigeait `privacy.html` en 308, y compris dans le
+  plan du site) avec son `canonical` ; description, lien vers le site et sujets du dépôt GitHub,
+  qui n'avait qu'une description en français.
 - **Le site met en avant trois choses qu'il ne disait pas** : l'outil ne vole jamais le focus (SYS.12,
   comportement de la 1.0.4), l'interface côté humain, barre latérale comprise (SYS.13), et le
   durcissement de l'accès distant, dit avec ses limites (comparaison à temps constant, refus des
