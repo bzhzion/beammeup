@@ -72,3 +72,14 @@ jobs:
         env:
           RUSTFLAGS: -D warnings
         run: cargo check --all-targets
+
+  # La politique de confidentialite (site/privacy.html) doit decrire ce que le code ecrit sur le
+  # disque. Le meme controle bloque aussi la publication winget (publish-winget.yml) : le lancer
+  # ici fait remonter l'ecart des le commit plutot qu'au moment de publier un tag.
+  politique:
+    name: politique de confidentialite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Ecritures disque et politique
+        run: python3 scripts/verifier-ecritures-disque.py

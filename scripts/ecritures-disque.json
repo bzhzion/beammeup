@@ -1,0 +1,28 @@
+{
+  "cli.rs": {
+    "fs::write": 2,
+    "temp_dir()": 1
+  },
+  "elevation.rs": {
+    "fs::write": 1,
+    "temp_dir()": 1
+  },
+  "ipc.rs": {
+    "create_dir_all": 1,
+    "temp_dir()": 1
+  },
+  "remote_web.rs": {
+    "OpenOptions": 2,
+    "config_dir()": 1,
+    "create_dir_all": 1,
+    "fs::write": 1
+  },
+  "screenshot.rs": {
+    "fs::write": 1
+  },
+  "snippets.rs": {
+    "config_dir()": 1,
+    "create_dir_all": 1,
+    "fs::write": 1
+  }
+}

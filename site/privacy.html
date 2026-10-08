@@ -82,7 +82,7 @@
             you must explicitly enable; when active, terminal content travels unencrypted over your
             local network. The details are below.
           </p>
-          <p class="tutorial-footnote">Last updated: 2026-09-27 &nbsp;&middot;&nbsp; Applies to all versions of BeamMeUp.</p>
+          <p class="tutorial-footnote">Last updated: 2026-10-08&nbsp;&middot;&nbsp; Applies to all versions of BeamMeUp.</p>
         </div>
       </section>
 
@@ -182,8 +182,9 @@
         </div>
         <div class="panel-body">
           <p class="lede-small">
-            Beyond the remote-access settings covered above, BeamMeUp may write the following to
-            disk, and nothing else:
+            Beyond the remote-access settings covered above, this is everything BeamMeUp writes to
+            disk. Only the web engine data and the working files below appear without you asking:
+            the rest happens when you run the command that does it.
           </p>
           <div class="clearance-grid">
             <div class="clearance-item">
@@ -198,16 +199,53 @@
             <div class="clearance-item">
               <span class="clearance-mark" aria-hidden="true">&#9670;</span>
               <div>
+                <h3>Files You Ask For</h3>
+                <p>Three commands write what you point them at, and they are the <strong>only</strong>
+                   way session content reaches the disk. <code>beammeup export</code> writes the
+                   terminal content of a session to the file you name. <code>beammeup screenshot</code>
+                   writes a PNG of the window: without <code>--out</code> it lands as
+                   <code>beammeup-screenshot.png</code> in the system temporary folder, which
+                   BeamMeUp never cleans up. <code>beammeup remote read --out</code> copies a remote
+                   file to the local path you name. Delete these files yourself when you are done.</p>
+              </div>
+            </div>
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">&#9670;</span>
+              <div>
+                <h3>Web Engine Data</h3>
+                <p>BeamMeUp's window is a web view, and its engine keeps its own standard profile
+                   (cache, crash reports) at
+                   <code>%LOCALAPPDATA%\com.breizhzion.beammeup</code> on Windows, and in the
+                   user's data and cache directories on Linux. That data is managed by the engine,
+                   not by BeamMeUp, and the interface itself uses no <code>localStorage</code>,
+                   cookies or <code>IndexedDB</code>. Delete the folder to remove it.</p>
+              </div>
+            </div>
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">&#9670;</span>
+              <div>
+                <h3>Working Files</h3>
+                <p>On Windows, <code>beammeup_relance_elevation.marker</code> in the temporary
+                   folder holds a single character and stops a second elevation prompt within 60
+                   seconds. On Linux, the control socket <code>beammeup-&lt;uid&gt;.sock</code> sits
+                   in your runtime directory, or in a private <code>0700</code> folder under the
+                   temporary folder when none exists. It is a control channel, not a data file,
+                   and a stale one left behind is replaced at the next start.</p>
+              </div>
+            </div>
+            <div class="clearance-item">
+              <span class="clearance-mark" aria-hidden="true">&#9670;</span>
+              <div>
                 <h3>Application Files</h3>
-                <p>The binary and supporting files placed by the installer
+                <p>The binary and the uninstaller placed by the installer
                    (<code>%LOCALAPPDATA%\beammeup</code> on Windows; system package paths on
                    Linux).</p>
               </div>
             </div>
           </div>
           <p class="tutorial-footnote">
-            No session content, command history, terminal output, or SSH credentials are written
-            to disk by BeamMeUp.
+            BeamMeUp keeps no command history, no log of what you type, and stores no SSH
+            credentials: authentication stays with the tools already configured on your machine.
           </p>
         </div>
       </section>

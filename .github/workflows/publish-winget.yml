@@ -30,12 +30,22 @@ on:
         description: 'Version a publier (ex: 0.2.0), doit deja avoir une Release GitHub'
         required: true
         type: string
+      dry_run:
+        description: 'Essai a blanc : genere le manifeste, n''ouvre AUCUNE pull request'
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       version:
         description: 'Version a publier (ex: 0.2.0), doit deja avoir une Release GitHub'
         required: true
         type: string
+      dry_run:
+        description: 'Essai a blanc : genere le manifeste, n''ouvre AUCUNE pull request'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -47,6 +57,19 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      # La politique de confidentialite doit decrire ce que le code de CETTE version ecrit sur le
+      # disque. Une version qui part toute seule sur winget ne passe plus sous les yeux de personne,
+      # et c'est un moderateur winget, pas nous, qui a releve la premiere politique fausse. Un
+      # echec ici BLOQUE la publication : il demande une relecture, pas un correctif automatique.
+      # Sur un tag, le checkout prend le code tague ; en lancement manuel, celui de la branche.
+      - uses: actions/checkout@v7
+
+      - name: Politique de confidentialite a jour avec le code
+        shell: pwsh
+        run: |
+          python scripts/verifier-ecritures-disque.py
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
       - name: Retrouver l'installeur de la release
         id: release
         shell: pwsh
@@ -75,6 +98,7 @@ jobs:
         env:
           WINGET_PAT: ${{ secrets.WINGET_PAT }}
           VERSION: ${{ inputs.version }}
+          DRY_RUN: ${{ inputs.dry_run }}
           INSTALLER_URL: https://github.com/${{ github.repository }}/releases/download/${{ steps.release.outputs.tag }}/${{ steps.release.outputs.asset }}
         shell: pwsh
         run: |
@@ -102,6 +126,27 @@ jobs:
           }
 
           Invoke-WebRequest -Uri "https://aka.ms/wingetcreate/latest" -OutFile "wingetcreate.exe"
+
+          # Essai a blanc : tout le chemin reel (recherche de l'installeur, synchro du fork,
+          # telechargement et empreinte, generation du manifeste) SAUF l'ouverture de la PR. C'est
+          # ce qui permet d'eprouver ce workflow sans version nouvelle a publier.
+          if ($env:DRY_RUN -eq 'true') {
+            $essai = Join-Path $env:RUNNER_TEMP "winget-essai"
+            Remove-Item -Recurse -Force $essai -ErrorAction SilentlyContinue
+            .\wingetcreate.exe update Breizhzion.BeamMeUp `
+              --version $env:VERSION `
+              --urls "$env:INSTALLER_URL" `
+              --token $env:WINGET_PAT `
+              --out $essai
+            if ($LASTEXITCODE -ne 0) { Write-Host "::error::wingetcreate update a echoue (rc=$LASTEXITCODE)"; exit 1 }
+            Get-ChildItem -Path $essai -Recurse -Filter "*.yaml" | ForEach-Object {
+              Write-Host "=== $($_.Name) ==="
+              Get-Content $_.FullName
+            }
+            Write-Host "ESSAI A BLANC : manifeste genere, aucune pull request ouverte."
+            exit 0
+          }
+
           .\wingetcreate.exe update Breizhzion.BeamMeUp `
             --version $env:VERSION `
             --urls "$env:INSTALLER_URL" `

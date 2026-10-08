@@ -29,8 +29,28 @@ L'historique git reste la source de vérité pour ce qui précède.
   ⚠️ **La politique de confidentialité doit suivre ce que l'application écrit sur le disque** :
   une version publiée automatiquement ne passe plus sous les yeux de personne avant d'être en
   ligne.
+- **Garde-fou `scripts/verifier-ecritures-disque.py`** qui bloque la publication winget (première
+  étape de `publish-winget.yml`) et fait échouer la CI (`ci.yml`, job `politique`) quand la
+  politique de confidentialité a pu devenir fausse. Deux contrôles dérivés du code : chaque nom de
+  fichier écrit en dur doit figurer dans `site/privacy.html`, et l'inventaire des points
+  d'écriture (`scripts/ecritures-disque.json`) doit correspondre au code. Le second ne dit pas
+  que la politique est fausse, il dit qu'il faut la relire ; après relecture, `--maj` enregistre
+  le nouvel inventaire. **Prouvé rouge** par deux mutations (un point d'écriture ajouté, un nom
+  de fichier non cité), puis restauré.
+- **Essai à blanc de la publication winget** (`dry_run` de `publish-winget.yml`) : exécute tout le
+  chemin réel jusqu'à la génération du manifeste, sans ouvrir de pull request. Permet d'éprouver
+  le workflow sans version nouvelle à publier.
 
 ### Corrigé
+
+- **La politique de confidentialité était encore fausse sur ce que l'application écrit sur le
+  disque** (deuxième relevé, par lecture de tout le code cette fois) : elle affirmait « rien
+  d'autre » et qu'aucun contenu de session n'était écrit, alors que `beammeup export` écrit le
+  contenu d'un terminal dans le fichier demandé, que `beammeup screenshot` écrit un PNG de la
+  fenêtre (par défaut `beammeup-screenshot.png` dans le dossier temporaire, jamais nettoyé), que
+  `remote read --out` copie un fichier distant, que le moteur web embarqué garde son profil
+  (`%LOCALAPPDATA%\com.breizhzion.beammeup`, 47 Mo mesurés), et que deux fichiers de travail
+  existent (marqueur d'élévation Windows, socket de contrôle Linux). Tout est maintenant dit.
 
 - **La première version de `privacy.html` affirmait que le token d'accès distant restait en
   mémoire et n'était jamais écrit sur disque : faux.** `remote_web.rs` sérialise `RemoteConfig`
