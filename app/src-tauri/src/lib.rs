@@ -2,6 +2,7 @@ mod cli;
 mod commands;
 mod elevation;
 mod ipc;
+mod keys;
 mod protocol;
 mod remote;
 mod remote_web;

@@ -401,20 +401,12 @@ impl SessionManager {
         Self::write_raw(&session, text.as_bytes())
     }
 
-    /// Special keys: ctrl-c, ctrl-d, enter, tab, esc...
+    /// Named keys (see `keys::key_bytes`): enter, arrows, ctrl-c, f5, alt-b...
     pub fn send_key(&self, id: &str, key: &str) -> Result<(), String> {
-        let bytes: &[u8] = match key.to_lowercase().as_str() {
-            "ctrl-c" => &[0x03],
-            "ctrl-d" => &[0x04],
-            "ctrl-z" => &[0x1a],
-            "enter" => b"\r",
-            "tab" => b"\t",
-            "esc" | "escape" => &[0x1b],
-            other => return Err(format!("unknown key: {other}")),
-        };
+        let bytes = crate::keys::key_bytes(key)?;
         let session = self.get(id)?;
         *session.last_send_cursor.lock().unwrap() = session.buffer.lock().unwrap().cursor();
-        Self::write_raw(&session, bytes)
+        Self::write_raw(&session, &bytes)
     }
 
     /// Sends a command, waits for it to finish, and returns its output and exit code.

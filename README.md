@@ -192,6 +192,15 @@ beammeup send my-work "build" --enter
 # A special key
 beammeup key my-work ctrl-c
 beammeup key my-work enter
+
+# Move through a menu, then validate
+beammeup key my-work down
+beammeup key my-work down
+beammeup key my-work enter
+
+# Combinations
+beammeup key my-work ctrl-left
+beammeup key my-work shift-tab
 ```
 
 > ⚠️ Always prefer `--enter` over a literal `\r` in the text: its escaping depends on the calling
@@ -199,7 +208,24 @@ beammeup key my-work enter
 > Windows paths that contain `\r`/`\t`/`\n` as a two character sequence (`C:\repo`, `C:\temp`...).
 > `--enter` sidesteps the problem entirely.
 
-Available keys: `ctrl-c`, `ctrl-d`, `ctrl-z`, `enter`, `tab`, `esc`.
+Available keys, case-insensitive:
+
+- **Editing and control:** `enter`, `tab`, `shift-tab`, `esc`, `space`, `backspace`, `delete`,
+  `insert`, `ctrl-<letter>` (`ctrl-c`, `ctrl-d`, `ctrl-z`, `ctrl-l`, `ctrl-a`...).
+- **Movement:** `up`, `down`, `left`, `right`, `home`, `end`, `pageup`, `pagedown`.
+- **Function keys:** `f1` to `f12`.
+- **Modifiers:** `ctrl-`, `alt-` and `shift-` in front of the arrows, `home`, `end`, `pageup`,
+  `pagedown`, `delete`, `insert` and `f1`-`f12` (`ctrl-left` jumps a word, `shift-f5`...), and
+  `alt-` in front of any key or single character (`alt-b`, `alt-backspace`). `+` works as well
+  as `-`: `ctrl+c`.
+- **A single character** (`y`, `n`) is sent as is.
+
+An unknown name is refused and the error lists every key that exists.
+
+> ⚠️ The sequences are the ones xterm sends in its normal cursor mode. A program that switched the
+> terminal to *application cursor mode* expects a different sequence for the arrows (`ESC O A`
+> instead of `ESC [ A`) and may ignore `up`/`down`/`left`/`right`. BeamMeUp does not track that
+> mode. If that happens, `send` with the exact sequence is the way out.
 
 ### Read what happened
 

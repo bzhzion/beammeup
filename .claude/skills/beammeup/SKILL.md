@@ -50,8 +50,14 @@ what, and the pitfalls already encountered.
    ```
    beammeup send mon-travail "npm run build" --enter
    beammeup key mon-travail ctrl-c
+   beammeup key mon-travail down      # arrow keys: pick an entry in a menu...
+   beammeup key mon-travail enter     # ...then validate it
    ```
-   Always use `--enter` rather than a literal `\r` (escaping differs by calling shell, and it can
+   `key` knows `enter`, `tab`, `shift-tab`, `esc`, `space`, `backspace`, `delete`, `up`/`down`/
+   `left`/`right`, `home`, `end`, `pageup`/`pagedown`, `f1`-`f12`, `ctrl-<letter>`, `alt-<key>`
+   and combinations such as `ctrl-left`. An unknown name is refused with the full list. If a menu
+   ignores the arrows (a program in *application cursor mode*), fall back to `send` with the raw
+   sequence (`ESC O B` for down). Always use `--enter` rather than a literal `\r` (escaping differs by calling shell, and it can
    collide with Windows paths like `C:\repo`, `C:\temp`...).
 5. **Read without running a new command**:
    ```

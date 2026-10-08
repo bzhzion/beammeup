@@ -90,7 +90,12 @@ pub enum Command {
         #[arg(value_name = "ID_OR_LABEL")]
         id: String,
     },
-    /// Special key: ctrl-c, ctrl-d, ctrl-z, enter, tab, esc
+    /// Send a named key: enter, tab, esc, up, down, ctrl-c, f5, alt-b...
+    ///
+    /// Names are case-insensitive. Available: enter, tab, esc, space, backspace, delete, insert,
+    /// up, down, left, right, home, end, pageup, pagedown, f1 to f12, a single character,
+    /// ctrl-<letter>, alt-<key>, shift-tab, and ctrl/alt/shift combined with the arrows, home,
+    /// end, pageup, pagedown, delete, insert and f1 to f12 (for example ctrl-left or shift-f5).
     Key {
         #[arg(value_name = "ID_OR_LABEL")]
         id: String,

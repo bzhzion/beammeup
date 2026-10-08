@@ -14,6 +14,22 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ### Ajouté
 
+- **`beammeup key` connaît beaucoup plus de touches** : les flèches, `home`, `end`, `pageup`,
+  `pagedown`, `delete`, `insert`, `backspace`, `space`, `f1` à `f12`, `shift-tab`, `ctrl-<lettre>`
+  (toute la série, pas seulement `ctrl-c`, `ctrl-d` et `ctrl-z`), `alt-<touche>`, et les
+  combinaisons `ctrl-`/`alt-`/`shift-` sur les flèches et les touches de navigation
+  (`ctrl-left`, `shift-f5`). Insensible à la casse, `+` accepté comme `-`, un caractère seul est
+  envoyé tel quel (`y`), et une touche inconnue est refusée avec la liste complète. **Les flèches
+  s'envoyaient déjà** par `send` avec la séquence d'échappement, vérifié par un essai réel
+  (PowerShell reçoit `DownArrow`), mais ce chemin n'était documenté nulle part et dépend de la
+  façon dont chaque shell écrit le caractère ESC (`$([char]27)`, `$'\x1b'`). La table est écrite
+  une seule fois, dans `keys.rs`, fonction pure testée (8 tests, **prouvés rouges** par trois
+  mutations : mauvaise lettre de flèche, poids du modificateur, octet de contrôle décalé).
+  ⚠️ Séquences xterm en mode curseur normal : un programme passé en *mode curseur applicatif* attend
+  `ESC O A` et peut ignorer les flèches, BeamMeUp ne suit pas ce mode ; `send` avec la séquence
+  exacte reste le recours. Les six anciennes touches gardent exactement leurs octets (test de
+  non-régression).
+
 - **Page de politique de confidentialité** (`site/privacy.html`), publiée à
   `beammeup.breizhzion.com/privacy.html` : aucune télémétrie, risque HTTP non chiffré de l'accès
   distant, stockage local, aucun tiers. Demandée par un modérateur winget avant validation de la
