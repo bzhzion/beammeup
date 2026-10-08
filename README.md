@@ -58,8 +58,9 @@ program, the same way it would call `git` or `npm`. If the window isn't open, it
   codes, in full or just "what happened since last time".
 - 🖥️ **Remotely controllable full screen**, and **real window screenshot** (Windows only, see
   below).
-- 🚫 **No secrets stored**: BeamMeUp remembers no password, key or token. It fully delegates
-  authentication to your already configured system tools.
+- 🚫 **No SSH secrets stored**: BeamMeUp remembers no password or key. It fully delegates
+  authentication to your already configured system tools. The one secret it keeps is the
+  remote-access token, if you enable remote access (see [Security](#security)).
 - 🪟 **Standing elevation**: local sessions inherit administrator rights without a prompt
   interrupting every new tab. Through UAC on Windows; through `pkexec` on Linux, and if no
   authentication is possible the window simply starts with your regular rights instead of not
@@ -365,7 +366,8 @@ When neither `--token` nor `--no-token` is passed, a random token is generated a
 save it, it will not be shown again. Settings (bind address, token, and whether to start
 automatically on the next launch) are saved to `remote.json` next to `snippets.json`, so a bare
 `beammeup web on` afterward reuses the last bind address, and the server comes back automatically
-on the next launch unless you run `beammeup web off` first.
+on the next launch unless you run `beammeup web off` first. `web off` does not erase the token from
+that file: to remove it, delete `remote.json` (see [Security](#security) for its location).
 
 Once started, open `http://<bind>/` from your phone's browser (over the same network, or your
 Tailscale network if you bound to a Tailscale address): a simple, dark themed page lets you pick a
@@ -454,8 +456,13 @@ exactly the same process: whatever one types, the other sees.
 
 ## Security
 
-- **No secrets stored.** BeamMeUp knows no password, private key or token: everything goes through
-  the tools already configured on your machine (SSH agent, `known_hosts`, etc.).
+- **No SSH secrets stored.** BeamMeUp knows no password or private key: everything goes through
+  the tools already configured on your machine (SSH agent, `known_hosts`, etc.). **The one secret
+  it does keep is the remote-access token**, written in clear text with the other remote-access
+  settings to `remote.json` (`%APPDATA%\beammeup\` on Windows, `~/.config/beammeup/` on Linux) when
+  you run `beammeup web on`. On Linux the file is mode `0600`; on Windows it relies on the
+  permissions of your profile folder. `beammeup web off` stops the server but leaves the token in
+  the file: delete `remote.json` to remove it.
 - **Standing elevation, by design.** The program runs as administrator so local sessions inherit
   its rights without a repeated prompt. This is a deliberate tradeoff for a personal,
   single-user tool, not suited to a shared machine.

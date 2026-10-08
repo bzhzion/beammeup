@@ -205,7 +205,7 @@
             <article class="feature-card">
               <span class="feature-code accent-blue">SYS.06</span>
               <h3>Real Vision</h3>
-              <p>Remotely driven fullscreen, and a real screenshot of the console:
+              <p>Remotely driven fullscreen, and on Windows a real screenshot of the console:
                  the agent can literally look at what's on screen.</p>
             </article>
 
@@ -315,9 +315,10 @@
             <div class="clearance-item">
               <span class="clearance-mark" aria-hidden="true">◆</span>
               <div>
-                <h3>No Secret Stored</h3>
-                <p>No password, no key, no token. Everything goes through your already
-                   configured system tools (SSH agent, <code>known_hosts</code>).</p>
+                <h3>No Password or Key Stored</h3>
+                <p>Everything goes through your already configured system tools (SSH agent,
+                   <code>known_hosts</code>). The only secret BeamMeUp keeps is the remote-access
+                   token, if you turn that feature on, in a local file that is yours to delete.</p>
               </div>
             </div>
             <div class="clearance-item">
@@ -333,8 +334,9 @@
               <span class="clearance-mark" aria-hidden="true">◆</span>
               <div>
                 <h3>Local Channel Only</h3>
-                <p>The control channel and the screenshot port only listen locally,
-                   restricted to the Windows account that launched the app.</p>
+                <p>The command channel only listens locally, restricted to the account that
+                   launched the app. The screenshot port is local-only too, but any process on the
+                   machine can reach it: right for a personal PC, not for a shared one.</p>
               </div>
             </div>
             <div class="clearance-item">

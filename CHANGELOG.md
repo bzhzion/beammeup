@@ -59,6 +59,16 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ### Corrigé
 
+- **Le site et le README affirmaient « aucun token stocké » et que le port de capture était
+  « restreint au compte »** : faux dans les deux cas. Le token d'accès distant est écrit en clair
+  dans `remote.json` dès `beammeup web on` (le README le disait lui-même plus bas, donc il se
+  contredisait), et le port de capture d'écran reste joignable par n'importe quel processus de la
+  machine, ce que la section Security du README admettait déjà et que le site contredisait. Les
+  deux textes disent maintenant : aucun mot de passe ni clé SSH stockés, le seul secret gardé est le
+  token d'accès distant ; le canal de commande est restreint au compte, le port de capture ne l'est
+  pas. La capture d'écran est aussi indiquée comme propre à Windows sur le site, et le README dit
+  que `web off` n'efface pas le token. Même défaut que la politique de confidentialité, relevé en
+  lisant le site contre le code.
 - **La politique de confidentialité était encore fausse sur ce que l'application écrit sur le
   disque** (deuxième relevé, par lecture de tout le code cette fois) : elle affirmait « rien
   d'autre » et qu'aucun contenu de session n'était écrit, alors que `beammeup export` écrit le
