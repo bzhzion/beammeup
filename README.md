@@ -81,7 +81,13 @@ program, the same way it would call `git` or `npm`. If the window isn't open, it
 
 ### Windows
 
-Download the `.msi` or `.exe` installer from the
+With [winget](https://learn.microsoft.com/windows/package-manager/winget/):
+
+```powershell
+winget install Breizhzion.BeamMeUp
+```
+
+Or download the `.msi` or `.exe` installer from the
 [latest release](https://github.com/bzhzion/beammeup/releases/latest). Once installed, add the
 folder containing `beammeup.exe` (`%LOCALAPPDATA%\beammeup`) to your `PATH` so you can call it
 from anywhere.

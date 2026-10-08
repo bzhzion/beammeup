@@ -70,6 +70,11 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ### Modifié
 
+- **winget est mis en avant sur le site et dans le README** (section Téléchargement, carte
+  Windows, et `## Installation`). Le site affichait déjà `winget install Breizhzion.BeamMeUp`
+  avant que le paquet existe en amont, donc une commande qui ne marchait pas ; elle est vraie
+  depuis la fusion de la PR #424365 le 2026-10-08, vérifiée par `winget show` (1.0.4, source
+  publique, `PrivacyUrl` présente).
 - **`actions/checkout` et `actions/setup-node` passent en v7** dans les workflows : les versions
   posées déclaraient `using: node20`, déprécié et déjà forcé sur Node 24 par GitHub. Les quatre
   changements de rupture de ces majeures ont été lus et confrontés au parc, aucun ne s'y applique,

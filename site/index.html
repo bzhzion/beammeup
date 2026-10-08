@@ -357,13 +357,15 @@
         </div>
         <div class="panel-body">
           <p class="lede-small">
-            Windows 10/11 and Linux. Installers built and signed on every release.
+            Windows 10/11 and Linux. Installers built and signed on every release, and published
+            on winget (Windows) and apt (Linux).
           </p>
 
           <div class="platform-grid">
             <article class="platform-card">
               <span class="feature-code accent-blue">WINDOWS</span>
-              <p>MSI or NSIS installer, signed (Azure Trusted Signing).</p>
+              <p>Install with winget, the Windows package manager. The signed MSI and NSIS
+                 installers (Azure Trusted Signing) are also on the releases page.</p>
               <pre><code>winget install Breizhzion.BeamMeUp</code></pre>
             </article>
 
@@ -383,7 +385,7 @@
             </a>
           </div>
           <p class="tutorial-footnote">
-            Full instructions (apt repository key, AppImage, building from source)
+            Full instructions (winget, apt repository key, AppImage, building from source)
             are in the
             <a href="https://github.com/bzhzion/beammeup#installation" target="_blank" rel="noopener">repo README</a>.
           </p>
