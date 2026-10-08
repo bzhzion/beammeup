@@ -899,6 +899,10 @@ button:focus-visible,
   gap: 1.4rem;
 }
 
+.faq-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .clearance-item {
   display: flex;
   gap: 0.9rem;
@@ -951,6 +955,12 @@ button:focus-visible,
 /* -------------------------------------------------------------------------
    Responsive
    ------------------------------------------------------------------------- */
+
+@media (max-width: 1100px) {
+  .faq-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
 
 @media (max-width: 880px) {
   .frame {

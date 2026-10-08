@@ -109,7 +109,9 @@ L'historique git reste la source de vérité pour ce qui précède.
   `Strict-Transport-Security` et `Permissions-Policy` ; la page de confidentialité référencée par
   son adresse finale `/privacy` (Cloudflare redirigeait `privacy.html` en 308, y compris dans le
   plan du site) avec son `canonical` ; description, lien vers le site et sujets du dépôt GitHub,
-  qui n'avait qu'une description en français.
+  qui n'avait qu'une description en français. Le faux terminal du héros tapait
+  `send my-work "npm run build\r"`, le motif que le README déconseille, et montre désormais
+  `--enter`. La FAQ s'affiche sur trois colonnes (une seule sur mobile).
 - **Le site met en avant trois choses qu'il ne disait pas** : l'outil ne vole jamais le focus (SYS.12,
   comportement de la 1.0.4), l'interface côté humain, barre latérale comprise (SYS.13), et le
   durcissement de l'accès distant, dit avec ses limites (comparaison à temps constant, refus des

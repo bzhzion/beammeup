@@ -98,7 +98,7 @@
 
   const transcript = [
     { who: "human", text: "PS C:\\Users\\pilot> " },
-    { who: "agent", text: "beammeup send my-work \"npm run build\\r\"" },
+    { who: "agent", text: "beammeup send my-work \"npm run build\" --enter" },
     { who: "system", text: "\n> Building...\n> Build completed in 4.2s\n\n" },
     { who: "human", text: "PS C:\\Users\\pilot> " },
     { who: "agent", text: "git status" },
