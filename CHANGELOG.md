@@ -102,6 +102,9 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ### Modifié
 
+- **README réduit à ce qui sert à un utilisateur** (515 lignes ramenées à ~190) : présentation,
+  installation, commandes groupées, conseils aux agents et sécurité en version courte. Les notes de
+  conception et de compromis qu'il portait en ont été retirées.
 - **Corrections issues de l'audit GEO du site** : une section FAQ de neuf questions, visible et en
   données structurées `FAQPage` (texte identique, vérifié par script) ; `screenshot` et `sameAs` dans
   les données `SoftwareApplication` ; un fichier `_headers` qui pose une politique de sécurité du

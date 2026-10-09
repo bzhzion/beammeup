@@ -11,94 +11,40 @@
 
 ---
 
-## The problem
+Coding agents run in a sandboxed shell that is **not a real terminal**, so anything interactive
+(arrow-key menus, `y/n` prompts, wizards like `npm init`) fails on them.
 
-Coding agents (Claude Code, etc.) run in a sandboxed shell whose standard input is **not a real
-terminal**. The result: any interactive tool (arrow key menu, `y/n` confirmation, `eas
-credentials` wizard, `npm init`...) crashes with an error along the lines of *"Input is required,
-but stdin is not readable"*. The usual workarounds (third party terminals driven through MCP)
-work, but stay limited: no fine grained control, no detection of the interpreters actually present
-on the machine, no real shared visibility between human and agent.
-
-## The idea
-
-BeamMeUp is **a single application**, with **a single window**, that displays terminal sessions
-(PowerShell, cmd, Git Bash, WSL on Windows; bash, zsh, fish on Linux; SSH everywhere) exactly like
-a real terminal, except that **two actors can type into it at the same time**: you, on the
-keyboard, and an AI agent, through a command line. You see everything the agent does, live, in the
-same window you can use yourself.
-
-No server to start ahead of time, no MCP config to write: the agent simply calls the `beammeup`
-program, the same way it would call `git` or `npm`. If the window isn't open, it opens itself:
-**there is no mode where the program acts without a visible window on screen.**
-
----
+BeamMeUp is a single window showing real terminal sessions (PowerShell, cmd, Git Bash, WSL, bash,
+zsh, fish, SSH) that **two actors can type into at the same time**: you on the keyboard, and an
+agent through the `beammeup` command. You see everything the agent does, live. There is no server
+to start and no MCP to configure: if the window isn't open, the first command opens it.
 
 ## Features
 
-- 🔍 **Automatic interpreter detection**: on Windows, PowerShell 5.1, PowerShell 7, `cmd.exe`, Git
-  Bash and every installed WSL distribution; on Linux, your login shell, then everything declared
-  in `/etc/shells` and whatever is found on the `PATH` (bash, zsh, fish...). Nothing is assumed,
-  everything is detected on every launch on the real machine (`beammeup shells`).
-- 🔐 **SSH through the real system client**: no homegrown SSH library, your `~/.ssh/config`, your
-  `known_hosts` and your key agent are used as they are.
-- 📤 **File transfer (upload/download)**: through the system's `scp`, visible in a tab like any
-  other session.
-- 🏷️ **Session labels**: give a session a name so you can find it again later without having to
-  memorize a technical identifier. Built so several agents can work in parallel on the same
-  machine without stepping on each other.
-- ⏱️ **Command completion detection** (`exec`): sends a command, waits for it to actually finish,
-  returns its output and exit code. No more guessing a delay and then reading back.
-- 📁 **Remote file operations** (`remote`): list/read/write/rename/delete a file on an SSH server
-  without opening a session, through the system client.
-- 🗂️ **Tab conveniences**: duplicate a session, reopen the last closed one, close everything
-  without quitting the application, bring a specific tab to the front (`select`).
-- 📋 **Snippets**: save frequently used commands and replay them with a keyword.
-- 📄 **Export and clean reading**: pull a session's content into a file, with or without ANSI color
-  codes, in full or just "what happened since last time".
-- 🖥️ **Remotely controllable full screen**, and **real window screenshot** (Windows only, see
-  below).
-- 🚫 **No SSH secrets stored**: BeamMeUp remembers no password or key. It fully delegates
-  authentication to your already configured system tools. The one secret it keeps is the
-  remote-access token, if you enable remote access (see [Security](#security)).
-- 🪟 **Standing elevation**: local sessions inherit administrator rights without a prompt
-  interrupting every new tab. Through UAC on Windows; through `pkexec` on Linux, and if no
-  authentication is possible the window simply starts with your regular rights instead of not
-  starting at all.
-- 🟢 **Notification area icon**: closing the window (the X button, Alt+F4) hides it without killing
-  the running sessions; the icon stays visible next to the clock as long as the program is
-  running, with a right click menu (Show / Close all sessions / Quit). `beammeup quit` remains the
-  only real way to exit.
-- 🎛️ **Vertical sidebar**: designed for shared screen use (agent on the right, BeamMeUp on the
-  left): logo, shell picker, session list and snippet management, all reachable with a click,
-  without going through the CLI.
-- 📱 **Optional remote web access**: view and control sessions from your phone over the network
-  (e.g. your Tailscale network). Off by default; you opt in explicitly and choose the bind address
-  and authentication yourself (see below and [Security](#security)).
-
----
+- **Detects the shells actually installed** on the machine (`beammeup shells`).
+- **SSH and SCP through your system client**: your `~/.ssh/config`, `known_hosts` and key agent,
+  untouched. BeamMeUp stores no password or key.
+- **Session labels**, so several agents can work side by side without colliding.
+- **`exec`** runs a command and waits for it to finish, returning its output and exit code.
+- **Remote file operations** over SSH without opening a session.
+- **Snippets**, session export, full screen, window screenshots.
+- **Runs elevated**: local sessions get administrator rights without a prompt on every tab.
+- **Stays in the notification area** when you close the window, so sessions survive.
+- **Optional remote web access** from your phone, off by default.
 
 ## Installation
 
 ### Windows
 
-With [winget](https://learn.microsoft.com/windows/package-manager/winget/):
-
 ```powershell
 winget install Breizhzion.BeamMeUp
 ```
 
-Or download the `.msi` or `.exe` installer from the
-[latest release](https://github.com/bzhzion/beammeup/releases/latest). Once installed, add the
-folder containing `beammeup.exe` (`%LOCALAPPDATA%\beammeup`) to your `PATH` so you can call it
-from anywhere.
+Or download the installer from the
+[latest release](https://github.com/bzhzion/beammeup/releases/latest). Windows asks for
+administrator rights on first launch: that is expected (see [Security](#security)).
 
-On the very first launch in window mode, Windows shows a UAC prompt (administrator elevation):
-that's expected and intentional (see [Security](#security)).
-
-### Linux
-
-Through the apt repository (Debian/Ubuntu):
+### Linux (Debian/Ubuntu)
 
 ```bash
 sudo curl -fsSL https://apt.breizhzion.com/KEY.gpg -o /usr/share/keyrings/breizhzion.asc
@@ -107,23 +53,13 @@ echo "deb [signed-by=/usr/share/keyrings/breizhzion.asc] https://apt.breizhzion.
 sudo apt update && sudo apt install beammeup
 ```
 
-> The key is served ASCII armored and dropped as is in `.asc` format: `apt` can read it directly
-> in that format, which avoids depending on `gpg --dearmor` and therefore on the `gnupg` package,
-> missing from many minimal installs and container images.
+The AppImage from the [latest release](https://github.com/bzhzion/beammeup/releases/latest) works
+on any distribution.
 
-Otherwise, the AppImage from the [latest release](https://github.com/bzhzion/beammeup/releases/latest)
-works on any distribution, with no installation needed.
+### Building from source
 
-### Building it yourself
-
-Common prerequisites: [Rust](https://rustup.rs/) and [Node.js](https://nodejs.org/) (18+). On
-Windows, add [Git for Windows](https://git-scm.com/download/win) if you want the Git Bash tab. On
-Linux, Tauri's dependencies:
-
-```bash
-sudo apt install libwebkit2gtk-4.1-dev libgtk-3-dev libsoup-3.0-dev \
-  librsvg2-dev libayatana-appindicator3-dev patchelf build-essential pkg-config
-```
+Requires [Rust](https://rustup.rs/) and [Node.js](https://nodejs.org/) 18+, plus
+[Tauri's dependencies](https://v2.tauri.app/start/prerequisites/) on Linux.
 
 ```bash
 git clone https://github.com/bzhzion/beammeup.git
@@ -132,384 +68,112 @@ npm install
 npm run tauri build
 ```
 
-> ⚠️ Always build with `npm run tauri build`, never `cargo build` alone: it's the Tauri CLI that
-> embeds the interface into the executable. A plain `cargo build --release` produces a binary
-> whose window shows "Could not connect to localhost", while the command line itself works fine,
-> which makes the problem easy to miss. The project now refuses to compile in that case, but it's
-> worth knowing about.
+Use `npm run tauri build`, not `cargo build`: only the former embeds the interface.
 
-The packages then end up in `app/src-tauri/target/release/bundle/`.
+## Usage
 
----
+`beammeup --help` and `beammeup <command> --help` are always up to date with your version.
 
-## Full walkthrough
-
-All the commands below follow the same principle: if no BeamMeUp window is running, one opens
-automatically before the command runs. You never need to launch it "by hand" beforehand.
-
-### See what's available on your machine
+### Sessions
 
 ```powershell
-beammeup shells
+beammeup shells                                         # available shells and their ids
+beammeup open --shell pwsh7 --label work                # local shell
+beammeup open --ssh "user@server -i C:\path\key" --label prod
+beammeup open --scp "C:\file.txt user@server:/tmp/" --label upload
+beammeup list                                           # open sessions
+beammeup select work                                    # switch the window to this tab
+beammeup duplicate work
+beammeup close work
+beammeup close-all                                      # closes every tab, keeps the window
+beammeup reopen                                         # reopens the last closed tab
+beammeup quit                                           # really exits
 ```
 
-Lists the interpreters actually detected, with their identifier, name and path: use that
-identifier to open a session.
+`open` always creates a new tab. If two sessions share a label, the most recent one wins.
 
-```
-pwsh5     Windows PowerShell 5.1   C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe
-cmd       Command Prompt          C:\WINDOWS\System32\cmd.exe
-pwsh7     PowerShell 7            C:\Program Files\PowerShell\7\pwsh.exe
-gitbash   Git Bash                C:\Program Files\Git\bin\bash.exe
-wsl:Debian WSL: Debian            C:\WINDOWS\System32\wsl.exe
-```
-
-### Open a session
+### Typing and reading
 
 ```powershell
-# A local shell, with a name so you can find it again
-beammeup open --shell pwsh5 --label my-work
-
-# An SSH connection (reuses your existing config/keys/agent)
-beammeup open --ssh "user@myserver.com -i C:\path\to\key" --label prod-server
-
-# A file transfer (upload here; swap the arguments to download)
-beammeup open --scp "C:\local\file.txt user@myserver.com:/remote/path/" --label upload
+beammeup send work "npm run build" --enter
+beammeup key work ctrl-c
+beammeup key work down
+beammeup exec work "npm test" --timeout-ms 60000        # waits, returns output + exit code
+beammeup read work --last --plain                       # output since the last send, no colors
+beammeup export work --out log.txt --plain
 ```
 
-Every call to `open` **always creates a new tab**, never silently reuses an existing session. The
-window always comes to the front.
+Prefer `--enter` to a literal `\r`, whose escaping depends on your shell.
 
-### Type into a session
+`key` accepts `enter`, `tab`, `esc`, `space`, `backspace`, `delete`, `insert`, the arrows, `home`,
+`end`, `pageup`, `pagedown`, `f1` to `f12`, `ctrl-<letter>`, the `ctrl-`, `alt-` and `shift-`
+modifiers, and any single character. Version 1.0.4 and older only know `ctrl-c`, `ctrl-d`,
+`ctrl-z`, `enter`, `tab` and `esc`.
+
+### Remote files over SSH
 
 ```powershell
-# Text, with an Enter right after
-beammeup send my-work "npm run build" --enter
-
-# Text without pressing Enter (for example to build up a command over several sends)
-beammeup send my-work "npm run "
-beammeup send my-work "build" --enter
-
-# A special key
-beammeup key my-work ctrl-c
-beammeup key my-work enter
-
-# Move through a menu, then validate
-beammeup key my-work down
-beammeup key my-work down
-beammeup key my-work enter
-
-# Combinations
-beammeup key my-work ctrl-left
-beammeup key my-work shift-tab
+beammeup remote list   "user@server" /var/log
+beammeup remote read   "user@server" /etc/hostname --out hostname.txt
+beammeup remote write  "user@server" /tmp/config.json --from config.json
+beammeup remote rename "user@server" /tmp/a.txt /tmp/b.txt
+beammeup remote delete "user@server" /tmp/b.txt         # refuses directories
+beammeup remote mkdir  "user@server" /tmp/folder
 ```
 
-> ⚠️ Always prefer `--enter` over a literal `\r` in the text: its escaping depends on the calling
-> shell (`` `r `` in PowerShell, `$'...\r'` in Bash, impossible in single quotes) and collides with
-> Windows paths that contain `\r`/`\t`/`\n` as a two character sequence (`C:\repo`, `C:\temp`...).
-> `--enter` sidesteps the problem entirely.
-
-> **Available from the first release after 1.0.4.** Version 1.0.4 knows only `ctrl-c`, `ctrl-d`,
-> `ctrl-z`, `enter`, `tab` and `esc`. For any other key, `send` with the raw escape sequence works
-> on every version (an arrow down is `ESC [ B`).
-
-Available keys, case-insensitive:
-
-- **Editing and control:** `enter`, `tab`, `shift-tab`, `esc`, `space`, `backspace`, `delete`,
-  `insert`, `ctrl-<letter>` (`ctrl-c`, `ctrl-d`, `ctrl-z`, `ctrl-l`, `ctrl-a`...).
-- **Movement:** `up`, `down`, `left`, `right`, `home`, `end`, `pageup`, `pagedown`.
-- **Function keys:** `f1` to `f12`.
-- **Modifiers:** `ctrl-`, `alt-` and `shift-` in front of the arrows, `home`, `end`, `pageup`,
-  `pagedown`, `delete`, `insert` and `f1`-`f12` (`ctrl-left` jumps a word, `shift-f5`...), and
-  `alt-` in front of any key or single character (`alt-b`, `alt-backspace`). `+` works as well
-  as `-`: `ctrl+c`.
-- **A single character** (`y`, `n`) is sent as is.
-
-An unknown name is refused and the error lists every key that exists.
-
-> ⚠️ The sequences are the ones xterm sends in its normal cursor mode. A program that switched the
-> terminal to *application cursor mode* expects a different sequence for the arrows (`ESC O A`
-> instead of `ESC [ A`) and may ignore `up`/`down`/`left`/`right`. BeamMeUp does not track that
-> mode. If that happens, `send` with the exact sequence is the way out.
-
-### Read what happened
-
-```powershell
-# The full session history, with raw ANSI codes
-beammeup read my-work
-
-# Clean version, without color/cursor codes
-beammeup read my-work --plain
-
-# Only what happened since the last `send`/`key`
-beammeup read my-work --last --plain
-
-# From a specific cursor (returned by previous calls)
-beammeup read my-work --since 1024
-```
-
-### Run a command and wait for it to finish
-
-```powershell
-beammeup exec my-work "npm run build"
-```
-
-Unlike `send` (which returns control immediately), `exec` waits for the command to actually
-finish, then returns its output and exit code. No more guessing a delay and then rereading with
-`read`. Detection relies on a unique marker injected right after the command (syntax adapted to
-the session's shell), with a configurable timeout:
-
-```powershell
-beammeup exec my-work "Start-Sleep -Seconds 30; ./long-script.ps1" --timeout-ms 60000
-```
-
-### Bring a tab to the front
-
-```powershell
-beammeup select my-work
-```
-
-Unlike `open`, this creates nothing: it just switches the window to an already open tab, handy for
-showing a specific session when several are running in parallel.
-
-### Duplicate, reopen, close everything
-
-```powershell
-# A new tab with the same settings as an existing one (same shell, or same ssh/scp arguments)
-beammeup duplicate my-work
-
-# Closes all sessions WITHOUT quitting the application (unlike `quit`)
-beammeup close-all
-
-# Reopens the last closed session (any of them), same settings
-beammeup reopen
-```
-
-### Files on a remote server (without opening a session)
-
-```powershell
-beammeup remote list "user@myserver.com -i C:\path\key" /var/log
-beammeup remote read "user@myserver.com" /etc/hostname --out hostname.txt
-beammeup remote write "user@myserver.com" /tmp/config.json --from config.json
-beammeup remote rename "user@myserver.com" /tmp/old.txt /tmp/new.txt
-beammeup remote delete "user@myserver.com" /tmp/new.txt
-beammeup remote mkdir "user@myserver.com" /tmp/new-folder
-```
-
-A minimal SFTP equivalent, using the system's `ssh` client (the same principle as `--ssh`
-sessions): useful for reading/writing a file without going through `send`+`read`, fragile on
-binary data or a large file. `target` follows the same format as `open --ssh`. `delete` refuses a
-directory (`rm -f` without `-r`) rather than allowing a recursive deletion by mistake.
-
-### Export a session to a file
-
-```powershell
-beammeup export my-work --out report.txt --plain
-```
-
-### Resize or close
-
-```powershell
-beammeup resize my-work 120 40
-beammeup close my-work
-```
-
-### Snippets: ready to replay commands
+### Snippets, screen and window
 
 ```powershell
 beammeup snippet add deploy "npm run build && npm run deploy"
+beammeup snippet run work deploy
 beammeup snippet list
-beammeup snippet run my-work deploy
 beammeup snippet remove deploy
-```
-
-Snippets are stored locally (`%LOCALAPPDATA%\beammeup\snippets.json`): this is not a vault, just
-plain text commands, so don't put secrets in there.
-
-They can also be managed from the window itself: a dedicated section at the bottom of the sidebar
-lists snippets in a dropdown, with a ▶ button to replay one on the active session and
-Edit/Add/Delete buttons (deletion requires double confirmation).
-
-### Full screen and screenshots
-
-```powershell
+beammeup resize work 120 40
 beammeup fullscreen on
-beammeup fullscreen off
-
-# Captures a real screenshot of the active tab, writes a PNG
 beammeup screenshot --out capture.png
 ```
+
+Snippets are stored as plain text: don't put secrets in them. They can also be managed from the
+sidebar.
 
 ### Remote web access
 
 ```powershell
-# Starts (or reconfigures) the remote web server on the running window, live, no restart needed
-beammeup web on --bind 0.0.0.0:9871
-
-# Same, but with an explicit token instead of an auto-generated one
-beammeup web on --bind 0.0.0.0:9871 --token my-own-secret
-
-# Same, but with no authentication at all (anyone reaching the address gets full access)
-beammeup web on --bind 0.0.0.0:9871 --no-token
-
-# Stops it
-beammeup web off
-
-# Running or not, bind address, whether a token is configured (never prints the token itself)
+beammeup web on --bind 100.x.x.x:9871      # prints a generated token, once
 beammeup web status
+beammeup web off
 ```
 
-> ⚠️ **This opens your admin-elevated shell to the network.** Off by default; nothing changes on
-> this machine's network exposure until you explicitly run `beammeup web on`. There is no
-> restriction on the bind address you pass: `0.0.0.0` is accepted exactly as you asked, because
-> the choice (and its consequences) is yours as this machine's admin, the same philosophy already
-> applied to standing elevation. Pick a bind address you actually intend (a Tailscale IP rather
-> than `0.0.0.0` on an untrusted network, for instance).
+Then open `http://<bind>/` on your phone to watch and type into sessions. The setting survives a
+restart until you run `web off`. Read [Security](#security) before using it.
 
-When neither `--token` nor `--no-token` is passed, a random token is generated and printed once:
-save it, it will not be shown again. Settings (bind address, token, and whether to start
-automatically on the next launch) are saved to `remote.json` next to `snippets.json`, so a bare
-`beammeup web on` afterward reuses the last bind address, and the server comes back automatically
-on the next launch unless you run `beammeup web off` first. `web off` does not erase the token from
-that file: to remove it, delete `remote.json` (see [Security](#security) for its location).
+## Tips for AI agents
 
-Once started, open `http://<bind>/` from your phone's browser (over the same network, or your
-Tailscale network if you bound to a Tailscale address): a simple, dark themed page lets you pick a
-session, watch its output (polled every 1.5 seconds, not a live stream: see
-[Security](#security)), and send text to it. If a token is configured, the page asks for it once
-and remembers it for the browser tab's lifetime only (`sessionStorage`, cleared when the tab
-closes), never `localStorage`.
-
-### List open sessions
-
-```powershell
-beammeup list
-beammeup status
-```
-
-### Cleanly close the application
-
-```powershell
-beammeup quit
-```
-
-With BeamMeUp running elevated (administrator), an ordinary `Stop-Process` fails with *"Access is
-denied"* even for its own user: `quit` is the only reliable way to close it from the outside.
-
-Closing the window (the X button, Alt+F4) does **not** quit the application: the sessions live in
-the same process, so killing it along with the window would lose them all. The window simply hides
-and the program keeps running, signaled by the icon in the notification area. Clicking it (or
-"Show" in its menu) reopens the window, and any CLI command (`open`, `select`...) brings it back
-automatically too.
-
----
-
-## For AI agents
-
-This section is for any agent (Claude Code, ChatGPT/Codex, or otherwise) driving BeamMeUp, not
-just the human installing the program. `beammeup --help` and `beammeup <subcommand> --help` remain
-the exact source of truth (always in sync with the installed binary); what follows is context that
-the built-in help can't provide.
-
-- **Never a headless mode, but never a focus thief either.** Every command relaunches the window
-  if needed and always makes it visible on screen, which is the guarantee that the human can always
-  see what the agent is doing. **Visible is not the same as in front**: no agent-driven command
-  takes the foreground, `select` included. The human keeps working on whatever else they are doing
-  while agents run; they come back to the window when they choose to, and find the right tab already
-  selected. Only two human gestures raise the window: clicking the notification-area icon, and
-  relaunching the executable by hand.
-- **Prefer `exec` over `send` for any command whose result you're waiting on.** `send` returns
-  control immediately (useful for interactive typing, answering a prompt); `exec` waits for the
-  command to actually finish and returns output plus exit code. Guessing a delay and then rereading
-  with `read` is a technique left over from before `exec` existed, no longer needed today.
-- **Known, unresolved limitation: the very first character sent to a brand new session can be
-  lost**, on Windows, if the first send arrives after a period of silence. Practical workaround:
-  on a session that was just opened, send a throwaway character (for example a space) before the
-  real command, or simply check the result with `read`/`exec` and resend if the beginning is
-  missing.
-- **Labels rather than UUIDs.** `open --label my-name`, then reusing `my-name` everywhere (`send`,
-  `read`, `exec`, `close`...) is more readable and more robust than a UUID copied by hand,
-  especially when several agents or several sessions are running in parallel on the same machine.
-  If a label is duplicated, resolution always picks the most recent session.
-- **One window per machine, one control channel.** All commands from a given machine talk to the
-  same instance; there's no notion of an isolated "BeamMeUp session" per agent. Two agents working
-  in parallel on the same machine share the same tab list; `select` lets one of them bring the tab
-  they care about to the front without disturbing the others.
-- **`close-all` is not `quit`.** `close-all` empties the tabs but leaves the window open; `quit`
-  also closes the window and is the only reliable way to stop it from the outside (an elevated
-  process refuses a non elevated `Stop-Process`/`taskkill`).
-- **`remote` doesn't go through any session.** To read/write a file on an already configured SSH
-  server, `beammeup remote read|write|list|rename|delete|mkdir` is more direct and more reliable on
-  binary data or a large file than a `send`+`read` round trip inside a shell session.
-
----
-
-## How it works (in short)
-
-One executable, two behaviors:
-
-- **With no argument** → window mode: opens the interface, the session manager, and a local
-  control channel (Windows named pipe).
-- **With a subcommand** (`open`, `send`, `read`...) → connector mode: connects to the control
-  channel; if the window doesn't exist yet, relaunches it automatically (visibly), waits for it to
-  be ready, then forwards the command.
-
-Each session is a real pseudo-terminal (ConPTY on Windows) running either a locally detected
-interpreter or the system's `ssh`/`scp` client. The window and the external connector act on
-exactly the same process: whatever one types, the other sees.
+- **Use `exec`** when you need a result, `send` only to answer a prompt or type interactively.
+- **Pick one label that identifies you** and reuse it for your whole task.
+- **The window is always visible but never steals focus**, `select` included.
+- **On a brand new Windows session, the very first character may be lost.** Send a throwaway space
+  first, or check with `read` and resend.
+- **Stop BeamMeUp with `beammeup quit`**: it runs elevated, so `Stop-Process` is refused.
 
 ## Security
 
-- **No SSH secrets stored.** BeamMeUp knows no password or private key: everything goes through
-  the tools already configured on your machine (SSH agent, `known_hosts`, etc.). **The one secret
-  it does keep is the remote-access token**, written in clear text with the other remote-access
-  settings to `remote.json` (`%APPDATA%\beammeup\` on Windows, `~/.config/beammeup/` on Linux) when
-  you run `beammeup web on`. On Linux the file is mode `0600`; on Windows it relies on the
-  permissions of your profile folder. `beammeup web off` stops the server but leaves the token in
-  the file: delete `remote.json` to remove it.
-- **Standing elevation, by design.** The program runs as administrator so local sessions inherit
-  its rights without a repeated prompt. This is a deliberate tradeoff for a personal,
-  single-user tool, not suited to a shared machine.
-- **Local control channel only.** The command pipe and the screenshot capture port only listen
-  locally (`127.0.0.1`/named pipe), never reachable over the network. The command pipe is
-  restricted by ACL to the Windows account that launched the application, and only accepts
-  connections from the BeamMeUp executable itself. The screenshot port (CDP), however, remains
-  reachable by any process running on the machine regardless of its Windows account (a limitation
-  of the protocol, not of the DACL): an accepted tradeoff for a personal, single-user machine, not
-  suited to a machine shared between several accounts.
-- **Remote web access is the one deliberate exception to "local only", and it is opt-in.** Running
-  `beammeup web on` starts a real HTTP server reachable over the network, on whatever bind address
-  you choose, including `0.0.0.0`: this module does not restrict or refuse any address, the same
-  tradeoff already accepted for standing elevation, because the choice belongs to you as this
-  machine's admin, not to the program. Concretely, once started:
-  - The bind address and whether a token is required are entirely your choice; a safe default
-    (a randomly generated token) is used only when you pass neither `--token` nor `--no-token`,
-    never a silent "no auth" default.
-  - The token is compared with a constant-time comparison, never a plain `==`, to avoid a timing
-    side channel.
-  - There is **no rate limiting on token attempts** in this first version: an attacker who can
-    reach the bind address can try tokens as fast as the network allows. Accepted tradeoff for now
-    (a random 128-bit token is not brute-forceable in practice over a network round trip, but this
-    is a real gap compared to a production authentication system), consistent with the rest of
-    this section's approach of documenting risk rather than pretending it away.
-  - No WebSocket, HTTP polling only: a deliberate scope decision to keep this networked code small
-    and auditable.
-  - **Plain HTTP, no TLS.** The token and everything a session displays travel unencrypted. Over
-    Tailscale this is already covered end to end by WireGuard, which is why that is the
-    recommended bind. Over ordinary Wi-Fi or a LAN with `0.0.0.0`, anyone able to observe that
-    network segment reads the token on the very first poll and then has the same access you do.
-    Do not bind to a network you would not send this machine's root password over in the clear.
-  - If you explicitly disable the token (`--no-token`), requests are still rejected unless the
-    `Host` header is an IP literal or `localhost`: this closes a DNS rebinding attack (a web page
-    you merely visit, on an unrelated domain, resolving itself onto this bind address) without
-    costing anything on the normal, token-protected path.
-  - The endpoints give full read/write access to every open session (including whatever an
-    elevated shell can do): treat the token exactly like the password to this machine's shell,
-    because that is functionally what it is.
-- See the [issues](https://github.com/bzhzion/beammeup/issues) for known limitations.
+- **Runs as administrator by design**, so every local session is elevated. Meant for a personal,
+  single-user machine.
+- **Local control only.** The command channel is restricted to your Windows account and to the
+  BeamMeUp executable. The screenshot port listens on `127.0.0.1` but is reachable by any local
+  process: avoid machines shared between several accounts.
+- **Remote web access opens your elevated shell to the network.** It is off until you run
+  `beammeup web on`, and the bind address is entirely your choice: prefer a Tailscale IP, never
+  `0.0.0.0` on a network you don't trust. It is plain HTTP, so the token and everything on screen
+  travel unencrypted outside an encrypted network such as Tailscale. Treat the token like this
+  machine's root password. `--no-token` gives full access to anyone who can reach the address.
+- **The only secret stored is that token**, in `remote.json` (`%APPDATA%\beammeup\` on Windows,
+  `~/.config/beammeup/` on Linux). `web off` keeps it; delete the file to remove it.
+
+Known limitations are tracked in the [issues](https://github.com/bzhzion/beammeup/issues).
 
 ## License
 
 [BZ-1.1](LICENSE.md): BREIZHZION Personal Use License. Personal use only; manufacturing or commercial
-use for a third party is prohibited without a written commercial license. See the full text in
-[`LICENSE.md`](LICENSE.md).
+use for a third party is prohibited without a written commercial license.
