@@ -12,6 +12,8 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-12
+
 ### Ajouté
 
 - **`beammeup key` connaît beaucoup plus de touches** : les flèches, `home`, `end`, `pageup`,
@@ -28,9 +30,8 @@ L'historique git reste la source de vérité pour ce qui précède.
   ⚠️ Séquences xterm en mode curseur normal : un programme passé en *mode curseur applicatif* attend
   `ESC O A` et peut ignorer les flèches, BeamMeUp ne suit pas ce mode ; `send` avec la séquence
   exacte reste le recours. Les six anciennes touches gardent exactement leurs octets (test de
-  non-régression). ⚠️ **Au moment de poser le tag, retirer la mention « first release after 1.0.4 »**
-  du README et du skill (`grep -rn "after 1.0.4"`), qui existe pour ne pas annoncer à un utilisateur
-  de la 1.0.4 des touches qu'elle n'a pas.
+  non-régression). Le README et le skill annoncent « 1.1.0 ou plus » pour ne pas promettre à un
+  utilisateur de la 1.0.4 des touches qu'elle n'a pas.
 
 - **Page de politique de confidentialité** (`site/privacy.html`), publiée à
   `beammeup.breizhzion.com/privacy.html` : aucune télémétrie, risque HTTP non chiffré de l'accès

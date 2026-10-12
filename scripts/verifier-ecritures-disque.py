@@ -18,6 +18,7 @@ personne ne relit une version avant qu'elle soit en ligne.
 Limite assumee : il ne voit pas ce qu'un moteur tiers ecrit de son cote (le profil du moteur web), et
 un chemin construit dynamiquement echappe au controle 1. C'est pourquoi le controle 2 existe.
 """
+import html
 import json
 import re
 import sys
@@ -69,10 +70,23 @@ def fragments(nom: str):
     return [f for f in re.split(r"\{[^}]*\}", nom) if f]
 
 
+def texte_visible(page: str) -> str:
+    """Le texte du corps de la page, sans balises ni scripts.
+
+    Comparer a la page entiere laissait un fragment generique (`.png`, `beammeup-`) etre « cite »
+    par du balisage de l'en-tete : le controle passait au vert sans que la politique dise quoi que
+    ce soit. Meme correction que dans bzhzion/hublot.
+    """
+    corps = re.search(r"<body[^>]*>(.*)</body>", page, re.S)
+    texte = corps.group(1) if corps else page
+    texte = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", texte, flags=re.S)
+    return html.unescape(re.sub(r"<[^>]+>", " ", texte))
+
+
 def main() -> int:
     # Sans cela, la console Windows rend les guillemets francais en caracteres de remplacement.
     sys.stdout.reconfigure(encoding="utf-8")
-    politique = POLITIQUE.read_text(encoding="utf-8")
+    politique = texte_visible(POLITIQUE.read_text(encoding="utf-8"))
     erreurs = []
 
     for nom in sorted(noms_de_fichiers()):

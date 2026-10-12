@@ -53,7 +53,7 @@ what, and the pitfalls already encountered.
    beammeup key mon-travail down      # arrow keys: pick an entry in a menu...
    beammeup key mon-travail enter     # ...then validate it
    ```
-   The arrows and the longer list below need **the first release after 1.0.4**; version 1.0.4 knows only `ctrl-c`, `ctrl-d`, `ctrl-z`,
+   The arrows and the longer list below need **version 1.1.0 or later**; 1.0.4 and older know only `ctrl-c`, `ctrl-d`, `ctrl-z`,
    `enter`, `tab` and `esc`, so check `beammeup key --help` and otherwise use `send` with the raw
    escape sequence. `key` knows `enter`, `tab`, `shift-tab`, `esc`, `space`, `backspace`, `delete`, `up`/`down`/
    `left`/`right`, `home`, `end`, `pageup`/`pagedown`, `f1`-`f12`, `ctrl-<letter>`, `alt-<key>`
