@@ -1,0 +1,4 @@
+# Le site n'a pas de version /fr/, mais la newsletter Breizhzion d'octobre 2026 (deja envoyee)
+# y renvoie. Sans cette regle, Cloudflare Pages sert l'accueil sous /fr/ sans aucun style.
+/fr    /  301
+/fr/*  /  301

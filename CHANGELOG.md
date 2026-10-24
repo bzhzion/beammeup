@@ -12,6 +12,11 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ## [Unreleased]
 
+### Corrigé
+
+- Site : `/fr/` redirige vers l'accueil (`site/_redirects`). Cette adresse, citée par la
+  newsletter Breizhzion d'octobre 2026, servait l'accueil sans aucun style.
+
 ## [1.1.0] - 2026-10-12
 
 ### Ajouté
