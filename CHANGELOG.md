@@ -12,6 +12,10 @@ L'historique git reste la source de vérité pour ce qui précède.
 
 ## [Unreleased]
 
+### Modifié
+
+- **Adresse de l'association : 34 rue Decomberousse, 69100 Villeurbanne** (le siège quitte le 4 rue Isabelle Sadoyan), dans `LICENSE.md`.
+
 ### Corrigé
 
 - Site : `/fr/` redirige vers l'accueil (`site/_redirects`). Cette adresse, citée par la

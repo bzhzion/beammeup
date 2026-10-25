@@ -3,7 +3,7 @@
 SPDX-License-Identifier: LicenseRef-BZ-1.1
 
 Copyright (c) 2026 BREIZHZION (association loi 1901, SIREN 488930819)
-4 rue Isabelle Sadoyan, 69100 Villeurbanne, France
+34 rue Decomberousse, 69100 Villeurbanne, France
 contact@breizhzion.com
 
 *Version française faisant foi. English translation follows.*
@@ -248,7 +248,7 @@ translation is provided for convenience only.*
 SPDX-License-Identifier: LicenseRef-BZ-1.1
 
 Copyright (c) 2026 BREIZHZION (non-profit association, SIREN 488930819)
-4 rue Isabelle Sadoyan, 69100 Villeurbanne, France
+34 rue Decomberousse, 69100 Villeurbanne, France
 contact@breizhzion.com
 
 ---
