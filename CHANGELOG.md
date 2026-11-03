@@ -13,6 +13,7 @@ L'historique git reste la source de vérité pour ce qui précède.
 ## [Unreleased]
 
 ### Modifié
+- `.gitignore` : toute variante `.env.*` est ignorée, sauf `.env.example`. Une copie de sauvegarde `.env.bak-*` porte les mêmes secrets que `.env` (règle de parc du 2026-11-03).
 
 - **Adresse de l'association : 34 rue Decomberousse, 69100 Villeurbanne** (le siège quitte le 4 rue Isabelle Sadoyan), dans `LICENSE.md`.
 
